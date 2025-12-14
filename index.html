@@ -212,6 +212,10 @@
             top: -5px;
         }
         
+        .pizza-mode #coin-count::after {
+            content: '🍕';
+        }
+        
         @media (min-width: 768px) {
             #coin-count {
                 font-size: 4rem;
@@ -280,7 +284,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        .coin, .hat {
+        .coin, .hat, .pizza {
             width: 100%;
             height: 100%;
             display: flex;
@@ -413,6 +417,87 @@
             100% { opacity: 0; transform: scale(1.4); }
         }
         
+        /* Секретная пицца Пепперони */
+        .pizza::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 30%, #D35400 0%, #E67E22 30%, #F39C12 70%, #F1C40F 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 40px rgba(255, 255, 255, 0.3),
+                inset -10px -10px 25px rgba(0, 0, 0, 0.5),
+                0 0 50px rgba(231, 76, 60, 0.8),
+                0 15px 35px rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+        
+        .pizza::after {
+            content: '🍕';
+            font-size: 6.5rem;
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(3px 3px 8px rgba(0, 0, 0, 0.6));
+            animation: pizzaSpin 15s linear infinite;
+        }
+        
+        @keyframes pizzaSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Эффект пепперони на пицце */
+        .pizza-pepperoni {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%, #E74C3C 0%, #C0392B 70%, #922B21 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 10px rgba(255, 255, 255, 0.3),
+                0 2px 5px rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
+        
+        .pizza-pepperoni:nth-child(1) { top: 30%; left: 30%; }
+        .pizza-pepperoni:nth-child(2) { top: 40%; left: 60%; }
+        .pizza-pepperoni:nth-child(3) { top: 60%; left: 35%; }
+        .pizza-pepperoni:nth-child(4) { top: 70%; left: 65%; }
+        .pizza-pepperoni:nth-child(5) { top: 25%; left: 50%; }
+        .pizza-pepperoni:nth-child(6) { top: 50%; left: 25%; }
+        .pizza-pepperoni:nth-child(7) { top: 50%; left: 70%; }
+        .pizza-pepperoni:nth-child(8) { top: 65%; left: 50%; }
+        
+        .pizza-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, rgba(231, 76, 60, 0.6) 0%, transparent 70%);
+            opacity: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .pizza.active {
+            transform: scale(0.88);
+        }
+        
+        .pizza-effect.active {
+            animation: pizzaClickEffect 0.4s ease-out;
+        }
+        
+        @keyframes pizzaClickEffect {
+            0% { opacity: 1; transform: scale(0.7); }
+            70% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(1.4); }
+        }
+        
         /* Анимация появления числа при клике */
         .click-animation {
             position: absolute;
@@ -432,6 +517,14 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             padding: 5px;
+        }
+        
+        .pizza-mode .click-animation {
+            color: #E74C3C;
+            background: linear-gradient(to bottom, #E74C3C, #C0392B);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(231, 76, 60, 0.9);
         }
         
         @keyframes floatUp {
@@ -456,6 +549,11 @@
             pointer-events: none;
             opacity: 0;
             animation: fastFloatUp 0.6s ease-out forwards;
+        }
+        
+        .pizza-mode .fast-click-animation {
+            color: #E74C3C;
+            text-shadow: 0 0 5px rgba(231, 76, 60, 0.8);
         }
         
         @keyframes fastFloatUp {
@@ -724,6 +822,7 @@
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
         
         .stat-item:hover, .achievement-item:hover {
@@ -1157,6 +1256,44 @@
             transform: translateX(-50%) translateY(0);
         }
         
+        /* Секретное уведомление о пицце */
+        .secret-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background: linear-gradient(145deg, rgba(231, 76, 60, 0.95), rgba(192, 57, 43, 0.95));
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            z-index: 101;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            max-width: 400px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-left: 8px solid #C0392B;
+            border-right: 8px solid #C0392B;
+        }
+        
+        .secret-notification i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            animation: pizzaBounce 1s infinite alternate;
+        }
+        
+        @keyframes pizzaBounce {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-10px) rotate(10deg); }
+        }
+        
+        .secret-notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
         /* Для очень маленьких экранов */
         @media (max-width: 360px) {
             .clickable-container {
@@ -1169,6 +1306,10 @@
             }
             
             .hat::after {
+                font-size: 5rem;
+            }
+            
+            .pizza::after {
                 font-size: 5rem;
             }
             
@@ -1236,6 +1377,8 @@
                 <div class="coin-effect" id="coin-effect"></div>
                 <div class="hat" id="hat" style="display: none;"></div>
                 <div class="hat-effect" id="hat-effect" style="display: none;"></div>
+                <div class="pizza" id="pizza" style="display: none;"></div>
+                <div class="pizza-effect" id="pizza-effect" style="display: none;"></div>
             </div>
         </div>
         
@@ -1250,7 +1393,7 @@
         <div class="stats">
             <h2><i class="fas fa-chart-line"></i> Статистика</h2>
             <div class="stats-content">
-                <div class="stat-item">
+                <div class="stat-item" id="total-clicks-stat">
                     <div>Всего кликов: <span id="total-clicks">0</span></div>
                 </div>
                 <div class="stat-item">
@@ -1321,6 +1464,12 @@
     <div class="purchase-notification" id="purchase-notification">
         <i class="fas fa-shopping-bag"></i> Покупка успешно совершена!
     </div>
+    
+    <div class="secret-notification" id="secret-notification">
+        <i class="fas fa-pizza-slice"></i>
+        <div style="font-size: 1.4rem; font-weight: 800; margin-bottom: 5px;">Секретная пицца разблокирована! 🍕</div>
+        <div style="font-size: 1rem;">Вы активировали скрытый скин "Пепперони"!</div>
+    </div>
 
     <script>
         // Игровые переменные
@@ -1329,14 +1478,15 @@
         let clicks = 0;
         let multiplier = 1;
         let nextMultiplierCost = 50;
-        let stage = 1; // 1 - золотая монета, 2 - черная шляпа
-        let maxMultiplierStage1 = 350; // Скрыто от пользователя
+        let stage = 1; // 1 - золотая монета, 2 - черная шляпа, 3 - пицца (секретный режим)
+        let maxMultiplierStage1 = 350;
         let achievements = {
             coin50: false,
             coin500: false,
             coin1000: false,
             blackHat: false,
-            multiplier500: false
+            multiplier500: false,
+            pizzaSecret: false
         };
         
         // Переменные для магазина и бустов
@@ -1344,10 +1494,15 @@
         let autoClickTimeLeft = 0;
         let autoClickInterval = null;
         let clickInterval = null;
-        const CLICK_SPEED = 5; // 5 миллисекунд между кликами (200 кликов в секунду)
+        const CLICK_SPEED = 5;
         let boostPurchasedCount = 0;
-        let currentBoostCost = 1500; // Начальная стоимость буста
-        const BOOST_COST_INCREASE = 500000; // Увеличение цены на 500к после каждой покупки
+        let currentBoostCost = 1500;
+        const BOOST_COST_INCREASE = 500000;
+        
+        // Переменные для секретной пиццы
+        let pizzaClickCount = 0;
+        let pizzaUnlocked = false;
+        let pizzaMode = false;
         
         // Элементы DOM
         const coinCountEl = document.getElementById('coin-count');
@@ -1358,6 +1513,8 @@
         const coinEffectEl = document.getElementById('coin-effect');
         const hatEl = document.getElementById('hat');
         const hatEffectEl = document.getElementById('hat-effect');
+        const pizzaEl = document.getElementById('pizza');
+        const pizzaEffectEl = document.getElementById('pizza-effect');
         const multiplyBtn = document.getElementById('multiply-btn');
         const shopBtn = document.getElementById('shop-btn');
         const achievementsBtn = document.getElementById('achievements-btn');
@@ -1368,7 +1525,9 @@
         const closeModalBtn = document.getElementById('close-modal');
         const saveNotification = document.getElementById('save-notification');
         const purchaseNotification = document.getElementById('purchase-notification');
+        const secretNotification = document.getElementById('secret-notification');
         const totalClicksEl = document.getElementById('total-clicks');
+        const totalClicksStatEl = document.getElementById('total-clicks-stat');
         const totalCoinsEl = document.getElementById('total-coins');
         const currentMultiplierEl = document.getElementById('current-multiplier');
         const nextMultiplierEl = document.getElementById('next-multiplier');
@@ -1380,13 +1539,11 @@
         // Элементы магазина
         const shopModal = document.getElementById('shop-modal');
         const closeShopBtn = document.getElementById('close-shop');
-        const shopItems = document.getElementById('shop-items');
         const autoclickItem = document.getElementById('autoclick-item');
         const autoclickTimer = document.getElementById('autoclick-timer');
         const autoclickTime = document.getElementById('autoclick-time');
         const shopBalance = document.getElementById('shop-balance');
         const boostPriceEl = document.getElementById('boost-price');
-        const boostStatsEl = document.getElementById('boost-stats');
         const boostPurchasedEl = document.getElementById('boost-purchased');
         
         // Флаг для предотвращения множественных кликов
@@ -1400,19 +1557,13 @@
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 
-                // Случайная позиция
                 const posX = Math.random() * 100;
                 const posY = Math.random() * 100;
-                
-                // Размер и прозрачность
                 const size = Math.random() * 4 + 1;
                 const opacity = Math.random() * 0.5 + 0.2;
-                
-                // Время анимации
                 const duration = Math.random() * 20 + 10;
                 const delay = Math.random() * 5;
                 
-                // Установка стилей
                 particle.style.left = `${posX}%`;
                 particle.style.top = `${posY}%`;
                 particle.style.width = `${size}px`;
@@ -1421,6 +1572,20 @@
                 particle.style.animation = `floatParticle ${duration}s linear ${delay}s infinite`;
                 
                 particlesEl.appendChild(particle);
+            }
+        }
+        
+        // Функция для создания пепперони на пицце
+        function createPepperoni() {
+            // Очищаем старые пепперони
+            const oldPepperoni = document.querySelectorAll('.pizza-pepperoni');
+            oldPepperoni.forEach(p => p.remove());
+            
+            // Создаем 8 пепперони на пицце
+            for (let i = 0; i < 8; i++) {
+                const pepperoni = document.createElement('div');
+                pepperoni.className = 'pizza-pepperoni';
+                pizzaEl.appendChild(pepperoni);
             }
         }
         
@@ -1447,7 +1612,7 @@
         `;
         document.head.appendChild(style);
         
-        // Функция для форматирования чисел в красивый вид
+        // Функция для форматирования чисел
         function formatNumber(num) {
             if (num >= 1000000000) {
                 const billions = num / 1000000000;
@@ -1457,7 +1622,7 @@
                     return billions.toFixed(2).replace(/\.00$/, '') + 'B';
                 }
             } else if (num >= 1000000) {
-                const millions = num / 1000000;
+                const millions = num / 1000000000;
                 if (millions >= 10) {
                     return Math.floor(millions) + 'M';
                 } else {
@@ -1481,7 +1646,7 @@
             }
         }
         
-        // Функция для подробного форматирования (для больших сумм в магазине)
+        // Функция для подробного форматирования
         function formatNumberDetailed(num) {
             if (num >= 1000000) {
                 const millions = Math.floor(num / 1000000);
@@ -1518,7 +1683,12 @@
             updateAchievementsList();
             updateShop();
             
-            // Обработчики событий - универсальные для ПК и мобильных
+            // Если пицца разблокирована, активируем режим пиццы
+            if (pizzaUnlocked) {
+                activatePizzaMode();
+            }
+            
+            // Обработчики событий
             setupClickHandlers();
             
             multiplyBtn.addEventListener('click', upgradeMultiplier);
@@ -1535,6 +1705,9 @@
             // Обработчик покупки авто-клика
             autoclickItem.addEventListener('click', buyAutoClick);
             
+            // Обработчик для секретной пиццы (10 кликов по статистике)
+            totalClicksStatEl.addEventListener('click', handlePizzaSecretClick);
+            
             // Обновляем текст кнопки улучшения множителя
             updateMultiplyButton();
             
@@ -1543,7 +1716,7 @@
                 startAutoClick();
             }
             
-            // Добавляем эффект пульсации для кликабельной области
+            // Эффект пульсации для кликабельной области
             setInterval(() => {
                 if (!isProcessingClick && !autoClickActive) {
                     clickableContainerEl.style.transform = 'scale(1.03)';
@@ -1556,19 +1729,72 @@
             }, 2000);
         }
         
-        // Настройка обработчиков кликов для ПК и мобильных
+        // Обработчик для активации секретной пиццы
+        function handlePizzaSecretClick() {
+            pizzaClickCount++;
+            
+            // Если нажали 10 раз, активируем пиццу
+            if (pizzaClickCount >= 10 && !pizzaUnlocked) {
+                pizzaUnlocked = true;
+                achievements.pizzaSecret = true;
+                activatePizzaMode();
+                showSecretNotification();
+                saveGame();
+                
+                // Сбрасываем счетчик
+                pizzaClickCount = 0;
+            }
+        }
+        
+        // Активация режима пиццы
+        function activatePizzaMode() {
+            pizzaMode = true;
+            document.body.classList.add('pizza-mode');
+            
+            // Скрываем все остальные скины
+            coinEl.style.display = 'none';
+            coinEffectEl.style.display = 'none';
+            hatEl.style.display = 'none';
+            hatEffectEl.style.display = 'none';
+            
+            // Показываем пиццу
+            pizzaEl.style.display = 'block';
+            pizzaEffectEl.style.display = 'block';
+            
+            // Создаем пепперони
+            createPepperoni();
+            
+            // Обновляем текст этапа
+            if (stage === 1) {
+                gameStageEl.textContent = 'Секретный режим: Пицца Пепперони!';
+                gameStageEl.style.borderColor = '#E74C3C';
+                gameStageEl.style.boxShadow = '0 0 15px rgba(231, 76, 60, 0.5)';
+            } else if (stage === 2) {
+                gameStageEl.textContent = 'Этап 2 + Пицца: Черная шляпа с пепперони!';
+                gameStageEl.style.borderColor = '#9C27B0';
+                gameStageEl.style.boxShadow = '0 0 15px rgba(156, 39, 176, 0.5)';
+            }
+            
+            // Обновляем достижения
+            updateAchievementsList();
+        }
+        
+        // Показать уведомление о разблокировке пиццы
+        function showSecretNotification() {
+            secretNotification.classList.add('show');
+            
+            setTimeout(() => {
+                secretNotification.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Настройка обработчиков кликов
         function setupClickHandlers() {
-            // Удаляем старые обработчики
             clickableContainerEl.removeEventListener('click', handleClick);
             clickableContainerEl.removeEventListener('touchstart', handleTouch);
             
-            // Для ПК
             clickableContainerEl.addEventListener('click', handleClick);
-            
-            // Для мобильных устройств
             clickableContainerEl.addEventListener('touchstart', handleTouch, { passive: false });
-            
-            // Предотвращаем выделение текста при долгом нажатии на мобильных
             clickableContainerEl.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 return false;
@@ -1589,7 +1815,6 @@
             
             if (e.touches.length > 0) {
                 const touch = e.touches[0];
-                // Создаем искусственное событие клика с координатами касания
                 const clickEvent = new MouseEvent('click', {
                     clientX: touch.clientX,
                     clientY: touch.clientY,
@@ -1597,19 +1822,20 @@
                     cancelable: true
                 });
                 
-                // Используем координаты касания для анимации
                 processClick(clickEvent);
             }
         }
         
         // Основная функция обработки клика
         function processClick(e) {
-            // Предотвращаем множественные клики
             if (isProcessingClick) return;
             isProcessingClick = true;
             
             // Визуальная обратная связь
-            if (stage === 1) {
+            if (pizzaMode) {
+                pizzaEl.classList.add('active');
+                pizzaEffectEl.classList.add('active');
+            } else if (stage === 1) {
                 coinEl.classList.add('active');
                 coinEffectEl.classList.add('active');
             } else {
@@ -1619,21 +1845,35 @@
             
             // Игровая логика
             clicks++;
-            const coinsEarned = stage === 1 ? multiplier : multiplier * 5;
+            let coinsEarned;
+            
+            if (stage === 1) {
+                coinsEarned = multiplier;
+            } else if (stage === 2) {
+                coinsEarned = multiplier * 5;
+            }
+            
+            // Бонус за пиццу
+            if (pizzaMode) {
+                coinsEarned = Math.floor(coinsEarned * 1.2); // +20% бонус за пиццу
+            }
+            
             coins += coinsEarned;
             totalCoins += coinsEarned;
             
             // Создаем анимацию числа
             createClickAnimation(e, coinsEarned);
             
-            // Проверка достижений по количеству монет
+            // Проверка достижений
             checkCoinAchievements();
             
             updateUI();
             
             // Сбрасываем состояние анимации
             setTimeout(() => {
-                if (stage === 1) {
+                if (pizzaMode) {
+                    pizzaEl.classList.remove('active');
+                } else if (stage === 1) {
                     coinEl.classList.remove('active');
                 } else {
                     hatEl.classList.remove('active');
@@ -1641,9 +1881,11 @@
                 isProcessingClick = false;
             }, 100);
             
-            // Сбрасываем эффект для повторного использования
+            // Сбрасываем эффект
             setTimeout(() => {
-                if (stage === 1) {
+                if (pizzaMode) {
+                    pizzaEffectEl.classList.remove('active');
+                } else if (stage === 1) {
                     coinEffectEl.classList.remove('active');
                 } else {
                     hatEffectEl.classList.remove('active');
@@ -1657,36 +1899,28 @@
             clickAnim.className = 'click-animation';
             clickAnim.textContent = `+${formatNumber(amount)}`;
             
-            // Получаем координаты контейнера
             const rect = clickableContainerEl.getBoundingClientRect();
             let x, y;
             
-            // Определяем координаты для ПК или мобильного
             if (e.type === 'touchstart' || (e.touches && e.touches.length > 0)) {
-                // Для касаний на мобильных устройствах
                 const touch = e.touches[0];
                 x = touch.clientX - rect.left;
                 y = touch.clientY - rect.top;
             } else {
-                // Для кликов мышью
                 x = e.clientX - rect.left;
                 y = e.clientY - rect.top;
             }
             
-            // Устанавливаем позицию в центре, если координаты не определены
             if (x === undefined || y === undefined) {
                 x = rect.width / 2;
                 y = rect.height / 2;
             }
             
-            // Устанавливаем позицию
             clickAnim.style.left = `${x}px`;
             clickAnim.style.top = `${y}px`;
             
-            // Добавляем в контейнер
             clickableContainerEl.appendChild(clickAnim);
             
-            // Удаляем анимацию после завершения
             setTimeout(() => {
                 if (clickAnim.parentNode) {
                     clickAnim.remove();
@@ -1700,19 +1934,15 @@
             clickAnim.className = 'fast-click-animation';
             clickAnim.textContent = `+${formatNumber(amount)}`;
             
-            // Случайная позиция внутри монеты
             const rect = clickableContainerEl.getBoundingClientRect();
             const x = 40 + Math.random() * (rect.width - 80);
             const y = 40 + Math.random() * (rect.height - 80);
             
-            // Устанавливаем позицию
             clickAnim.style.left = `${x}px`;
             clickAnim.style.top = `${y}px`;
             
-            // Добавляем в контейнер
             clickableContainerEl.appendChild(clickAnim);
             
-            // Удаляем анимацию после завершения
             setTimeout(() => {
                 if (clickAnim.parentNode) {
                     clickAnim.remove();
@@ -1737,14 +1967,12 @@
             boostPriceEl.textContent = formatNumberDetailed(currentBoostCost) + ' 🪙';
             boostPurchasedEl.textContent = boostPurchasedCount;
             
-            // Обновляем состояние товаров
             if (coins >= currentBoostCost && !autoClickActive) {
                 autoclickItem.classList.remove('disabled');
             } else {
                 autoclickItem.classList.add('disabled');
             }
             
-            // Показываем/скрываем таймер авто-клика
             if (autoClickActive) {
                 autoclickTimer.style.display = 'block';
                 autoclickTime.textContent = autoClickTimeLeft;
@@ -1761,22 +1989,17 @@
                 autoClickTimeLeft = 60;
                 boostPurchasedCount++;
                 
-                // Увеличиваем цену для следующей покупки на 500к
                 currentBoostCost += BOOST_COST_INCREASE;
                 
-                // Показываем кнопку буста
                 boostBtn.style.display = 'inline-block';
                 boostBtn.textContent = `Буст (${autoClickTimeLeft}s)`;
                 boostBtn.classList.remove('active');
                 
-                // Обновляем UI
                 updateUI();
                 updateShop();
                 
-                // Показываем уведомление о покупке
                 showPurchaseNotification();
                 
-                // Сохраняем игру
                 saveGame();
             }
         }
@@ -1791,13 +2014,11 @@
             }
         }
         
-        // Запуск авто-клика (5ms = 200 кликов в секунду)
+        // Запуск авто-клика
         function startAutoClick() {
-            // Очищаем предыдущие интервалы
             if (clickInterval) clearInterval(clickInterval);
             if (autoClickInterval) clearInterval(autoClickInterval);
             
-            // Запускаем таймер
             autoClickInterval = setInterval(() => {
                 autoClickTimeLeft--;
                 if (!boostBtn.disabled) {
@@ -1812,22 +2033,29 @@
                 updateShop();
             }, 1000);
             
-            // Запускаем автоматические клики (каждые 5 миллисекунд)
             let clickCounter = 0;
-            const maxClicksPerFrame = 10; // Ограничиваем количество кликов за кадр для производительности
+            const maxClicksPerFrame = 10;
             
             clickInterval = setInterval(() => {
-                // Ограничиваем количество кликов за один тик для производительности
                 const clicksThisTick = Math.min(maxClicksPerFrame, 200 - clickCounter);
                 
                 for (let i = 0; i < clicksThisTick; i++) {
-                    // Игровая логика
                     clicks++;
-                    const coinsEarned = stage === 1 ? multiplier : multiplier * 5;
+                    let coinsEarned;
+                    
+                    if (stage === 1) {
+                        coinsEarned = multiplier;
+                    } else if (stage === 2) {
+                        coinsEarned = multiplier * 5;
+                    }
+                    
+                    if (pizzaMode) {
+                        coinsEarned = Math.floor(coinsEarned * 1.2);
+                    }
+                    
                     coins += coinsEarned;
                     totalCoins += coinsEarned;
                     
-                    // Создаем быструю анимацию (только каждый 10-й клик для производительности)
                     if (clickCounter % 10 === 0) {
                         createFastClickAnimation(coinsEarned);
                     }
@@ -1835,15 +2063,12 @@
                 
                 clickCounter += clicksThisTick;
                 
-                // Проверка достижений по количеству монет
                 checkCoinAchievements();
                 
-                // Обновляем UI каждые 50 кликов для производительности
                 if (clickCounter % 50 === 0) {
                     updateUI();
                 }
                 
-                // Сбрасываем счетчик каждую секунду
                 if (clickCounter >= 200) {
                     clickCounter = 0;
                 }
@@ -1855,20 +2080,16 @@
             autoClickActive = false;
             autoClickTimeLeft = 0;
             
-            // Очищаем интервалы
             if (clickInterval) clearInterval(clickInterval);
             if (autoClickInterval) clearInterval(autoClickInterval);
             
-            // Скрываем кнопку буста
             boostBtn.style.display = 'none';
             boostBtn.disabled = false;
             boostBtn.classList.remove('active');
             
-            // Обновляем UI
             updateUI();
             updateShop();
             
-            // Сохраняем игру
             saveGame();
         }
         
@@ -1890,7 +2111,6 @@
                 if (stage === 1) {
                     multiplier++;
                     
-                    // Проверка на достижение максимального множителя в первом этапе
                     if (multiplier >= maxMultiplierStage1) {
                         activateSecretStage();
                         return;
@@ -1920,15 +2140,18 @@
             nextMultiplierCost = 5000;
             achievements.blackHat = true;
             
-            // Показываем модальное окно
             secretModal.style.display = 'flex';
             
-            // Переключаем отображение с монеты на шляпу
-            coinEl.style.display = 'none';
-            coinEffectEl.style.display = 'none';
-            hatEl.style.display = 'block';
-            hatEffectEl.style.display = 'block';
-            gameStageEl.textContent = 'Этап 2: Черная шляпа';
+            if (!pizzaMode) {
+                coinEl.style.display = 'none';
+                coinEffectEl.style.display = 'none';
+                hatEl.style.display = 'block';
+                hatEffectEl.style.display = 'block';
+                gameStageEl.textContent = 'Этап 2: Черная шляпа';
+            } else {
+                // Если пицца активна, обновляем только текст
+                gameStageEl.textContent = 'Этап 2 + Пицца: Черная шляпа с пепперони!';
+            }
             
             saveGame();
             updateUI();
@@ -2000,7 +2223,8 @@
                 { id: 'blackHat', title: 'Черная шляпа', description: 'Откройте секретную очивку', condition: stage === 2, unlocked: achievements.blackHat, icon: 'fas fa-hat-wizard' },
                 { id: 'multiplier500', title: 'Множитель x500', description: 'Достигните множителя x500', condition: multiplier >= 500, unlocked: achievements.multiplier500, icon: 'fas fa-chart-line' },
                 { id: 'boostMaster', title: 'Мастер бустов', description: 'Купите 5 бустов', condition: boostPurchasedCount >= 5, unlocked: boostPurchasedCount >= 5, icon: 'fas fa-bolt' },
-                { id: 'richPlayer', title: 'Богатый игрок', description: 'Заработайте 1 миллион монет', condition: totalCoins >= 1000000, unlocked: totalCoins >= 1000000, icon: 'fas fa-crown' }
+                { id: 'richPlayer', title: 'Богатый игрок', description: 'Заработайте 1 миллион монет', condition: totalCoins >= 1000000, unlocked: totalCoins >= 1000000, icon: 'fas fa-crown' },
+                { id: 'pizzaSecret', title: 'Секретная пицца', description: 'Разблокируйте скрытый скин пиццы', condition: pizzaUnlocked, unlocked: achievements.pizzaSecret, icon: 'fas fa-pizza-slice' }
             ];
             
             achievementsListEl.innerHTML = '';
@@ -2034,12 +2258,13 @@
                 autoClickActive,
                 autoClickTimeLeft,
                 boostPurchasedCount,
-                currentBoostCost
+                currentBoostCost,
+                pizzaUnlocked,
+                pizzaMode
             };
             
             localStorage.setItem('coinClickerGame', JSON.stringify(gameData));
             
-            // Показываем уведомление
             saveNotification.classList.add('show');
             
             setTimeout(() => {
@@ -2066,17 +2291,19 @@
                         coin500: false,
                         coin1000: false,
                         blackHat: false,
-                        multiplier500: false
+                        multiplier500: false,
+                        pizzaSecret: false
                     };
                     
-                    // Загружаем данные магазина
                     autoClickActive = gameData.autoClickActive || false;
                     autoClickTimeLeft = gameData.autoClickTimeLeft || 0;
                     boostPurchasedCount = gameData.boostPurchasedCount || 0;
                     currentBoostCost = gameData.currentBoostCost || 1500;
                     
-                    // Обновляем отображение в зависимости от этапа
-                    if (stage === 2) {
+                    pizzaUnlocked = gameData.pizzaUnlocked || false;
+                    pizzaMode = gameData.pizzaMode || false;
+                    
+                    if (stage === 2 && !pizzaMode) {
                         coinEl.style.display = 'none';
                         coinEffectEl.style.display = 'none';
                         hatEl.style.display = 'block';
@@ -2084,7 +2311,6 @@
                         gameStageEl.textContent = 'Этап 2: Черная шляпа';
                     }
                     
-                    // Показываем кнопку буста если активен
                     if (autoClickActive && autoClickTimeLeft > 0) {
                         boostBtn.style.display = 'inline-block';
                         boostBtn.textContent = `Буст (${autoClickTimeLeft}s)`;
@@ -2115,28 +2341,35 @@
                     coin500: false,
                     coin1000: false,
                     blackHat: false,
-                    multiplier500: false
+                    multiplier500: false,
+                    pizzaSecret: false
                 };
                 
-                // Сбрасываем данные магазина
                 autoClickActive = false;
                 autoClickTimeLeft = 0;
                 boostPurchasedCount = 0;
                 currentBoostCost = 1500;
+                pizzaClickCount = 0;
+                pizzaUnlocked = false;
+                pizzaMode = false;
+                
                 if (clickInterval) clearInterval(clickInterval);
                 if (autoClickInterval) clearInterval(autoClickInterval);
                 
-                // Сбрасываем внешний вид
                 coinEl.style.display = 'block';
                 coinEffectEl.style.display = 'block';
                 hatEl.style.display = 'none';
                 hatEffectEl.style.display = 'none';
+                pizzaEl.style.display = 'none';
+                pizzaEffectEl.style.display = 'none';
                 gameStageEl.textContent = 'Этап 1: Золотая монета';
+                gameStageEl.style.borderColor = '#FFD700';
+                gameStageEl.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.3)';
                 boostBtn.style.display = 'none';
                 boostBtn.disabled = false;
                 boostBtn.classList.remove('active');
+                document.body.classList.remove('pizza-mode');
                 
-                // Очищаем сохранение
                 localStorage.removeItem('coinClickerGame');
                 
                 updateUI();
@@ -2167,7 +2400,8 @@
         document.addEventListener('contextmenu', function(e) {
             if (e.target.closest('#clickable-container') || 
                 e.target.closest('#coin') || 
-                e.target.closest('#hat')) {
+                e.target.closest('#hat') ||
+                e.target.closest('#pizza')) {
                 e.preventDefault();
             }
         });
