@@ -418,20 +418,96 @@
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
         
-        /* Индикатор пассивного дохода */
-        .passive-income-indicator {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background: rgba(33, 150, 243, 0.2);
-            border-radius: 15px;
-            border: 1px solid rgba(33, 150, 243, 0.4);
-            display: inline-block;
-            animation: passivePulse 2s infinite;
+        /* КРАСИВЫЕ ПЕРЕКЛЮЧАТЕЛИ */
+        .toggle-switches {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+            flex-wrap: wrap;
         }
         
-        @keyframes passivePulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(33, 150, 243, 0.3); }
-            50% { box-shadow: 0 0 20px rgba(33, 150, 243, 0.6); }
+        .toggle-switch-container {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-label {
+            margin-right: 12px;
+            font-weight: 600;
+            color: #FFD700;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, rgba(255, 0, 0, 0.7), rgba(200, 0, 0, 0.7));
+            border-radius: 34px;
+            transition: .4s;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            border-radius: 50%;
+            transition: .4s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        input:checked + .toggle-slider {
+            background: linear-gradient(145deg, rgba(0, 200, 0, 0.7), rgba(0, 150, 0, 0.7));
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        
+        .toggle-slider::after {
+            content: 'OFF';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        input:checked + .toggle-slider::after {
+            content: 'ON';
+            left: 8px;
+            right: auto;
         }
         
         /* УЛУЧШЕННАЯ КЛИКАБЕЛЬНАЯ МОНЕТА */
@@ -465,317 +541,100 @@
             -webkit-tap-highlight-color: transparent;
         }
         
+        /* ========== ИСПРАВЛЕНИЕ: СТИЛИ ДЛЯ МОНЕТЫ, ШЛЯПЫ И ПИЦЦЫ ========== */
         .coin, .hat, .pizza {
             width: 100%;
             height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            user-select: none;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.1s;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        /* Супер улучшенная золотая монета */
-        .coin::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 30%, #FFD700 0%, #daa520 30%, #b8860b 70%, #8B7500 100%);
-            border-radius: 50%;
-            box-shadow: 
-                inset 0 0 40px rgba(255, 255, 255, 0.5),
-                inset -10px -10px 25px rgba(0, 0, 0, 0.7),
-                0 0 50px rgba(255, 215, 0, 0.9),
-                0 15px 40px rgba(0, 0, 0, 0.6);
-            z-index: 1;
-            animation: coinShine 4s linear infinite;
-        }
-        
-        @keyframes coinShine {
-            0% { filter: brightness(1) hue-rotate(0deg); }
-            50% { filter: brightness(1.2) hue-rotate(10deg); }
-            100% { filter: brightness(1) hue-rotate(0deg); }
-        }
-        
-        .coin::after {
-            content: '🪙';
-            font-size: 6rem;
-            position: relative;
+            font-size: 10rem;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            transition: transform 0.2s;
+            pointer-events: none;
             z-index: 2;
-            filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.6));
-            animation: coinGlow 2s ease-in-out infinite alternate;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+        
+        .coin {
+            color: #FFD700;
+            animation: coinGlow 2s infinite alternate;
         }
         
         @keyframes coinGlow {
-            0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(1.08) rotate(5deg); }
+            0% { transform: scale(1) rotate(0deg); text-shadow: 0 0 20px rgba(255, 215, 0, 0.7); }
+            100% { transform: scale(1.05) rotate(5deg); text-shadow: 0 0 40px rgba(255, 215, 0, 1); }
         }
         
-        .coin-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.7) 0%, transparent 70%);
-            opacity: 0;
-            z-index: 1;
-            pointer-events: none;
-        }
-        
-        /* Анимации для активного состояния */
         .coin.active {
-            transform: scale(0.85);
+            animation: coinClick 0.2s ease-out;
         }
         
-        .coin-effect.active {
-            animation: coinClickEffect 0.5s ease-out;
+        @keyframes coinClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); }
         }
         
-        @keyframes coinClickEffect {
-            0% { opacity: 1; transform: scale(0.7); }
-            70% { opacity: 0.8; transform: scale(1.2); }
-            100% { opacity: 0; transform: scale(1.5); }
+        .hat {
+            color: #333;
+            font-size: 9rem;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
         }
         
-        /* Улучшенная черная шляпа */
-        .hat::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 30%, #333 0%, #222 30%, #111 70%, #000 100%);
-            border-radius: 50%;
-            box-shadow: 
-                inset 0 0 40px rgba(150, 150, 150, 0.5),
-                inset -10px -10px 25px rgba(0, 0, 0, 0.9),
-                0 0 50px rgba(0, 0, 0, 0.9),
-                0 15px 40px rgba(0, 0, 0, 0.8);
-            z-index: 1;
-            animation: hatShine 4s linear infinite;
-        }
-        
-        @keyframes hatShine {
-            0% { filter: brightness(0.9); }
-            50% { filter: brightness(1.1); }
-            100% { filter: brightness(0.9); }
-        }
-        
-        .hat::after {
-            content: '🎩';
-            font-size: 7rem;
-            position: relative;
-            z-index: 2;
-            filter: drop-shadow(5px 5px 10px rgba(0, 0, 0, 0.9));
-            animation: hatGlow 2s ease-in-out infinite alternate;
-            text-shadow: 0 0 20px rgba(150, 150, 150, 0.8);
-        }
-        
-        @keyframes hatGlow {
-            0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(1.08) rotate(-5deg); }
-        }
-        
-        .hat-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle at 50% 50%, rgba(100, 100, 100, 0.7) 0%, transparent 70%);
-            opacity: 0;
-            z-index: 1;
-            pointer-events: none;
-        }
-        
-        .hat.active {
-            transform: scale(0.85);
-        }
-        
-        .hat-effect.active {
-            animation: hatClickEffect 0.5s ease-out;
-        }
-        
-        @keyframes hatClickEffect {
-            0% { opacity: 1; transform: scale(0.7); }
-            70% { opacity: 0.8; transform: scale(1.2); }
-            100% { opacity: 0; transform: scale(1.5); }
-        }
-        
-        /* Секретная пицца Пепперони - улучшенная */
-        .pizza::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 30%, #D35400 0%, #E67E22 30%, #F39C12 70%, #F1C40F 100%);
-            border-radius: 50%;
-            box-shadow: 
-                inset 0 0 50px rgba(255, 255, 255, 0.4),
-                inset -12px -12px 30px rgba(0, 0, 0, 0.6),
-                0 0 60px rgba(231, 76, 60, 0.9),
-                0 20px 45px rgba(0, 0, 0, 0.5);
-            z-index: 1;
-            animation: pizzaShine 4s linear infinite;
-        }
-        
-        @keyframes pizzaShine {
-            0% { filter: saturate(1); }
-            50% { filter: saturate(1.3); }
-            100% { filter: saturate(1); }
-        }
-        
-        .pizza::after {
-            content: '🍕';
-            font-size: 7.5rem;
-            position: relative;
-            z-index: 2;
-            filter: drop-shadow(5px 5px 12px rgba(0, 0, 0, 0.7));
-            animation: pizzaSpin 20s linear infinite, pizzaBounce 2s infinite alternate;
+        .pizza {
+            color: #E74C3C;
+            font-size: 8rem;
             text-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
         }
         
-        @keyframes pizzaSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes pizzaBounce {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
-        }
-        
-        /* Эффект пепперони на пицце - улучшенный */
-        .pizza-pepperoni {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background: radial-gradient(circle at 30% 30%, #E74C3C 0%, #C0392B 70%, #922B21 100%);
-            border-radius: 50%;
-            box-shadow: 
-                inset 0 0 15px rgba(255, 255, 255, 0.4),
-                0 3px 8px rgba(0, 0, 0, 0.6);
-            z-index: 1;
-            animation: pepperoniGlow 3s infinite alternate;
-        }
-        
-        @keyframes pepperoniGlow {
-            0% { opacity: 0.8; transform: scale(1); }
-            100% { opacity: 1; transform: scale(1.1); }
-        }
-        
-        .pizza-pepperoni:nth-child(1) { top: 30%; left: 30%; animation-delay: 0s; }
-        .pizza-pepperoni:nth-child(2) { top: 40%; left: 60%; animation-delay: 0.5s; }
-        .pizza-pepperoni:nth-child(3) { top: 60%; left: 35%; animation-delay: 1s; }
-        .pizza-pepperoni:nth-child(4) { top: 70%; left: 65%; animation-delay: 1.5s; }
-        .pizza-pepperoni:nth-child(5) { top: 25%; left: 50%; animation-delay: 0.2s; }
-        .pizza-pepperoni:nth-child(6) { top: 50%; left: 25%; animation-delay: 0.7s; }
-        .pizza-pepperoni:nth-child(7) { top: 50%; left: 70%; animation-delay: 1.2s; }
-        .pizza-pepperoni:nth-child(8) { top: 65%; left: 50%; animation-delay: 1.7s; }
-        
-        .pizza-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle at 50% 50%, rgba(231, 76, 60, 0.7) 0%, transparent 70%);
-            opacity: 0;
-            z-index: 1;
-            pointer-events: none;
-        }
-        
-        .pizza.active {
-            transform: scale(0.85);
-        }
-        
-        .pizza-effect.active {
-            animation: pizzaClickEffect 0.5s ease-out;
-        }
-        
-        @keyframes pizzaClickEffect {
-            0% { opacity: 1; transform: scale(0.7); }
-            70% { opacity: 0.8; transform: scale(1.2); }
-            100% { opacity: 0; transform: scale(1.5); }
-        }
-        
-        /* Анимация появления числа при клике - улучшенная */
+        /* Анимации кликов */
         .click-animation {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2.3rem;
-            font-weight: 900;
             color: #FFD700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.9), 0 0 30px rgba(255, 215, 0, 0.5);
-            z-index: 10;
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
             pointer-events: none;
-            opacity: 0;
-            animation: floatUp 1.5s ease-out forwards;
-            background: linear-gradient(to bottom, #FFD700, #daa520, #b8860b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            padding: 5px;
+            z-index: 100;
+            animation: floatUpClick 1.5s ease-out forwards;
+            white-space: nowrap;
         }
         
-        .pizza-mode .click-animation {
-            color: #E74C3C;
-            background: linear-gradient(to bottom, #E74C3C, #C0392B, #922B21);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 15px rgba(231, 76, 60, 0.9), 0 0 30px rgba(231, 76, 60, 0.5);
+        @keyframes floatUpClick {
+            0% { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% { 
+                opacity: 0;
+                transform: translateY(-60px) scale(1.2);
+            }
         }
         
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
-            20% { opacity: 1; transform: translate(-50%, -80%) scale(1.1); }
-            50% { opacity: 1; transform: translate(-50%, -120%) scale(1.2); }
-            80% { opacity: 0.6; transform: translate(-50%, -150%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -180%) scale(1); }
-        }
-        
-        /* Быстрая анимация для авто-клика */
         .fast-click-animation {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.8rem;
-            font-weight: 800;
             color: #FFD700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-            z-index: 10;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
             pointer-events: none;
-            opacity: 0;
+            z-index: 100;
             animation: fastFloatUp 0.8s ease-out forwards;
-        }
-        
-        .pizza-mode .fast-click-animation {
-            color: #E74C3C;
-            text-shadow: 0 0 10px rgba(231, 76, 60, 0.8);
+            white-space: nowrap;
         }
         
         @keyframes fastFloatUp {
-            0% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.7); }
-            50% { opacity: 0.8; transform: translate(-50%, -90%) scale(0.9); }
-            100% { opacity: 0; transform: translate(-50%, -130%) scale(1); }
+            0% { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% { 
+                opacity: 0;
+                transform: translateY(-40px) scale(1.1);
+            }
         }
         
         /* УЛУЧШЕННЫЕ КОНТРОЛЬНЫЕ КНОПКИ */
@@ -851,6 +710,15 @@
         }
         
         /* Специальные стили для разных кнопок */
+        .upgrade-btn {
+            background: linear-gradient(145deg, rgba(255, 152, 0, 0.95), rgba(239, 108, 0, 0.95));
+            box-shadow: 0 8px 0 rgba(239, 108, 0, 0.9), 0 12px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .upgrade-btn:hover {
+            box-shadow: 0 12px 0 rgba(239, 108, 0, 0.9), 0 18px 30px rgba(0, 0, 0, 0.4);
+        }
+        
         .reset-btn {
             background: linear-gradient(145deg, rgba(244, 67, 54, 0.95), rgba(198, 40, 40, 0.95));
             box-shadow: 0 8px 0 rgba(198, 40, 40, 0.9), 0 12px 20px rgba(0, 0, 0, 0.3);
@@ -954,7 +822,7 @@
         }
         
         /* УЛУЧШЕННЫЕ СТАТИСТИКИ И ДОСТИЖЕНИЯ */
-        .stats, .achievements {
+        .stats, .achievements, .upgrades-section {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             border-radius: 20px;
@@ -969,7 +837,7 @@
             overflow: hidden;
         }
         
-        .stats::before, .achievements::before {
+        .stats::before, .achievements::before, .upgrades-section::before {
             content: '';
             position: absolute;
             top: 0;
@@ -980,7 +848,7 @@
             z-index: 1;
         }
         
-        .stats:hover, .achievements:hover {
+        .stats:hover, .achievements:hover, .upgrades-section:hover {
             transform: translateY(-8px) scale(1.01);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
         }
@@ -1010,13 +878,13 @@
             border-radius: 4px;
         }
         
-        .stats-content, .achievements-content {
+        .stats-content, .achievements-content, .upgrades-content {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 18px;
         }
         
-        .stat-item, .achievement-item {
+        .stat-item, .achievement-item, .upgrade-item {
             background: rgba(0, 0, 0, 0.3);
             padding: 18px;
             border-radius: 15px;
@@ -1028,13 +896,13 @@
             backdrop-filter: blur(10px);
         }
         
-        .stat-item:hover, .achievement-item:hover {
+        .stat-item:hover, .achievement-item:hover, .upgrade-item:hover {
             background: rgba(0, 0, 0, 0.4);
             transform: translateX(8px) translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
         
-        .stat-item::before, .achievement-item::before {
+        .stat-item::before, .achievement-item::before, .upgrade-item::before {
             content: '';
             position: absolute;
             top: 0;
@@ -1047,8 +915,12 @@
             z-index: 1;
         }
         
-        .stat-item:hover::before, .achievement-item:hover::before {
+        .stat-item:hover::before, .achievement-item:hover::before, .upgrade-item:hover::before {
             transform: scaleY(1);
+        }
+        
+        .upgrade-item {
+            border-left-color: #2196F3;
         }
         
         .achievement-item {
@@ -1098,6 +970,59 @@
             margin-right: 10px;
         }
         
+        /* Иконка банка для пассивного дохода */
+        .bank-icon {
+            display: inline-block;
+            font-size: 1.8rem;
+            margin-right: 10px;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        /* Контроль громкости звуков */
+        .sound-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 12px 20px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sound-controls i {
+            color: #FFD700;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        .sound-controls input[type="range"] {
+            width: 80px;
+            height: 5px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .sound-controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #FFD700;
+            cursor: pointer;
+        }
+        
         /* Модальное окно магазина */
         .shop-modal {
             display: none;
@@ -1124,7 +1049,7 @@
             background: linear-gradient(145deg, #2d1b69 0%, #1a0f3d 100%);
             padding: 30px;
             border-radius: 25px;
-            max-width: 650px;
+            max-width: 600px;
             width: 100%;
             text-align: center;
             border: 3px solid #9C27B0;
@@ -1482,59 +1407,6 @@
             transform: translateX(-50%) translateY(0);
         }
         
-        /* Иконка банка для пассивного дохода */
-        .bank-icon {
-            display: inline-block;
-            font-size: 1.8rem;
-            margin-right: 10px;
-            background: linear-gradient(45deg, #4CAF50, #8BC34A);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-        
-        /* Контроль громкости звуков */
-        .sound-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 50px;
-            padding: 12px 20px;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .sound-controls i {
-            color: #FFD700;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-        
-        .sound-controls input[type="range"] {
-            width: 80px;
-            height: 5px;
-            -webkit-appearance: none;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            outline: none;
-        }
-        
-        .sound-controls input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #FFD700;
-            cursor: pointer;
-        }
-        
         /* АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ */
         @media (max-width: 767px) {
             .loading-title {
@@ -1574,16 +1446,15 @@
                 margin: 0 auto 20px;
             }
             
-            .coin::after {
-                font-size: 5rem;
+            .toggle-switches {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
             }
             
-            .hat::after {
-                font-size: 6rem;
-            }
-            
-            .pizza::after {
-                font-size: 6rem;
+            .toggle-switch-container {
+                width: 90%;
+                justify-content: center;
             }
             
             .controls {
@@ -1601,11 +1472,11 @@
                 min-height: 60px;
             }
             
-            .stats, .achievements {
+            .stats, .achievements, .upgrades-section {
                 padding: 20px 15px;
             }
             
-            .stats-content, .achievements-content {
+            .stats-content, .achievements-content, .upgrades-content {
                 grid-template-columns: 1fr;
             }
             
@@ -1697,29 +1568,50 @@
             </div>
             <div id="multiplier">Множитель: x1</div>
             
-            <!-- Индикатор пассивного дохода -->
-            <div id="passive-income-indicator" class="passive-income-indicator" style="display: none;">
-                <i class="fas fa-piggy-bank"></i> Пассивный доход: <span id="passive-income-amount">0</span> монет/сек
+            <!-- ПЕРЕКЛЮЧАТЕЛИ -->
+            <div class="toggle-switches">
+                <div class="toggle-switch-container" id="passive-toggle-container" style="display: none;">
+                    <span class="toggle-label"><i class="fas fa-piggy-bank"></i> Пассивный доход</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="passive-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-switch-container">
+                    <span class="toggle-label"><i class="fas fa-robot"></i> Авто-улучшение</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-upgrade-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
         </div>
         
+        <!-- ИСПРАВЛЕНИЕ: Добавлены стили для монетки -->
         <div class="clickable-container" id="clickable-container">
             <div class="clickable-item" id="clickable-item">
-                <div class="coin" id="coin"></div>
-                <div class="coin-effect" id="coin-effect"></div>
-                <div class="hat" id="hat" style="display: none;"></div>
-                <div class="hat-effect" id="hat-effect" style="display: none;"></div>
-                <div class="pizza" id="pizza" style="display: none;"></div>
-                <div class="pizza-effect" id="pizza-effect" style="display: none;"></div>
+                <div class="coin" id="coin">🪙</div>
+                <div class="hat" id="hat" style="display: none;">🎩</div>
+                <div class="pizza" id="pizza" style="display: none;">🍕</div>
             </div>
         </div>
         
         <div class="controls">
             <button id="multiply-btn" class="multiply-btn" disabled><i class="fas fa-arrow-up"></i> Улучшить множитель</button>
+            <button id="upgrade-btn" class="upgrade-btn"><i class="fas fa-chart-line"></i> Прокачка</button>
             <button id="shop-btn" class="shop-btn"><i class="fas fa-shopping-cart"></i> Магазин</button>
             <button id="achievements-btn" class="achievements-btn"><i class="fas fa-trophy"></i> Достижения</button>
             <button id="save-btn" class="save-btn"><i class="fas fa-save"></i> Сохранить</button>
             <button id="reset-btn" class="reset-btn"><i class="fas fa-redo"></i> Сбросить</button>
+        </div>
+        
+        <!-- СЕКЦИЯ ПРОКАЧКИ -->
+        <div class="upgrades-section" id="upgrades-section">
+            <h2><i class="fas fa-chart-line"></i> Прокачка</h2>
+            <div class="upgrades-content" id="upgrades-list">
+                <!-- Прокачки будут загружены через JavaScript -->
+            </div>
         </div>
         
         <div class="stats">
@@ -1761,25 +1653,8 @@
     <div class="shop-modal" id="shop-modal">
         <div class="shop-modal-content">
             <button class="close-shop" id="close-shop">&times;</button>
-            <h2><i class="fas fa-shopping-cart"></i> Магазин улучшений</h2>
+            <h2><i class="fas fa-shopping-cart"></i> Магазин бустов</h2>
             <div class="shop-items" id="shop-items">
-                <!-- Пассивный доход -->
-                <div class="shop-item" id="passive-income-item">
-                    <div class="shop-item-title">
-                        <span><div class="bank-icon">🏦</div> Пассивный доход</span>
-                        <span class="shop-item-price" id="passive-income-price">1k 🪙</span>
-                    </div>
-                    <div class="shop-item-description">
-                        Зарабатывает 500 монет в секунду, даже когда игра закрыта! Автоматически улучшает множители при накоплении.
-                    </div>
-                    <div class="shop-item-stats">
-                        <div id="passive-income-status">
-                            Статус: <span id="passive-income-status-text">Не куплено</span>
-                        </div>
-                        <div>Прибыль: <span id="passive-income-rate">0</span> монет/сек</div>
-                    </div>
-                </div>
-                
                 <!-- Супер-клик -->
                 <div class="shop-item" id="autoclick-item">
                     <div class="shop-item-title">
@@ -1906,72 +1781,120 @@
             setTimeout(initGame, 10500); // Запускаем игру после загрузки
         });
         
-        // ========== СИСТЕМА ЗВУКОВ ==========
+        // ========== ОПТИМИЗИРОВАННАЯ СИСТЕМА ЗВУКОВ ==========
         class SoundSystem {
             constructor() {
                 this.sounds = {};
                 this.volume = 0.5;
                 this.muted = false;
+                this.lastCoinSoundTime = 0;
+                this.coinSoundDelay = 100; // Минимальная задержка между звуками монеты (мс)
                 this.initSounds();
                 this.setupVolumeControls();
             }
             
             initSounds() {
-                // Создаем звуки с использованием Web Audio API для лучшего контроля
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // Звук клика по монете (золотой звук)
-                this.sounds.coinClick = this.createCoinSound();
-                
-                // Звук улучшения множителя (успешный звук)
-                this.sounds.upgrade = this.createUpgradeSound();
-                
-                // Звук покупки в магазине (кассовый звук)
-                this.sounds.purchase = this.createPurchaseSound();
-                
-                // Звук кнопок (мягкий клик)
-                this.sounds.button = this.createButtonSound();
-                
-                // Звук достижения (триумфальный звук)
-                this.sounds.achievement = this.createAchievementSound();
-                
-                // Звук буста (электрический звук)
-                this.sounds.boost = this.createBoostSound();
-                
-                // Звук пассивного дохода (монетный дождь)
-                this.sounds.passive = this.createPassiveSound();
+                // Предзагружаем звуки
+                this.preloadSounds();
             }
             
-            createCoinSound() {
-                // Создаем металлический звук монеты
+            preloadSounds() {
+                // Создаем звуковые буферы заранее
+                this.createSoundBuffers();
+            }
+            
+            createSoundBuffers() {
+                // Создаем простые звуки с помощью Web Audio API
+                // Это более эффективно чем создавать их каждый раз
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Звук монеты (приятный металлический звон)
+                    this.sounds.coinClick = this.createCoinClickSound(audioContext);
+                    
+                    // Звук кнопок (мягкий клик)
+                    this.sounds.button = this.createButtonSound(audioContext);
+                    
+                    // Звук улучшения (восходящий тон)
+                    this.sounds.upgrade = this.createUpgradeSound(audioContext);
+                    
+                    // Звук покупки (кассовый звук)
+                    this.sounds.purchase = this.createPurchaseSound(audioContext);
+                    
+                    // Звук достижения (триумф)
+                    this.sounds.achievement = this.createAchievementSound(audioContext);
+                    
+                    // Звук буста (электрический)
+                    this.sounds.boost = this.createBoostSound(audioContext);
+                    
+                    // Звук пассивного дохода (тихие монетки)
+                    this.sounds.passive = this.createPassiveSound(audioContext);
+                    
+                } catch (e) {
+                    console.log("Web Audio API не поддерживается, звуки отключены");
+                    this.muted = true;
+                }
+            }
+            
+            createCoinClickSound(audioContext) {
                 return () => {
+                    // Ограничиваем частоту воспроизведения звука монеты
+                    const now = Date.now();
+                    if (now - this.lastCoinSoundTime < this.coinSoundDelay) {
+                        return;
+                    }
+                    this.lastCoinSoundTime = now;
+                    
                     try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                         const oscillator = audioContext.createOscillator();
                         const gainNode = audioContext.createGain();
                         
                         oscillator.connect(gainNode);
                         gainNode.connect(audioContext.destination);
                         
-                        oscillator.frequency.value = 800;
-                        oscillator.type = 'triangle';
+                        // Приятный высокий звук монеты
+                        oscillator.frequency.value = 1200;
+                        oscillator.type = 'sine';
                         
-                        gainNode.gain.setValueAtTime(0.1 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        // Быстро затухающий звук
+                        gainNode.gain.setValueAtTime(0.08 * this.volume, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
                         
                         oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.3);
+                        oscillator.stop(audioContext.currentTime + 0.15);
                     } catch (e) {
-                        // Fallback для старых браузеров
-                        this.playFallbackSound('coin');
+                        // Простой fallback звук
+                        this.playFallbackCoinSound();
                     }
                 };
             }
             
-            createUpgradeSound() {
+            createButtonSound(audioContext) {
                 return () => {
                     try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 400;
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.06 * this.volume, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.1);
+                    } catch (e) {
+                        // Fallback
+                    }
+                };
+            }
+            
+            createUpgradeSound(audioContext) {
+                return () => {
+                    try {
                         const oscillator = audioContext.createOscillator();
                         const gainNode = audioContext.createGain();
                         
@@ -1979,134 +1902,25 @@
                         gainNode.connect(audioContext.destination);
                         
                         oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.5);
-                        oscillator.type = 'sine';
+                        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3);
+                        oscillator.type = 'triangle';
                         
-                        gainNode.gain.setValueAtTime(0.15 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.5);
-                    } catch (e) {
-                        this.playFallbackSound('upgrade');
-                    }
-                };
-            }
-            
-            createPurchaseSound() {
-                return () => {
-                    try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        
-                        // Создаем несколько осцилляторов для кассового звука
-                        for (let i = 0; i < 3; i++) {
-                            const oscillator = audioContext.createOscillator();
-                            const gainNode = audioContext.createGain();
-                            
-                            oscillator.connect(gainNode);
-                            gainNode.connect(audioContext.destination);
-                            
-                            oscillator.frequency.value = 400 + i * 200;
-                            oscillator.type = 'square';
-                            
-                            gainNode.gain.setValueAtTime(0.05 * this.volume, audioContext.currentTime + i * 0.1);
-                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3 + i * 0.1);
-                            
-                            oscillator.start(audioContext.currentTime + i * 0.1);
-                            oscillator.stop(audioContext.currentTime + 0.3 + i * 0.1);
-                        }
-                    } catch (e) {
-                        this.playFallbackSound('purchase');
-                    }
-                };
-            }
-            
-            createButtonSound() {
-                return () => {
-                    try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.value = 200;
-                        oscillator.type = 'sine';
-                        
-                        gainNode.gain.setValueAtTime(0.08 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                        gainNode.gain.setValueAtTime(0.1 * this.volume, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
                         
                         oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.1);
+                        oscillator.stop(audioContext.currentTime + 0.3);
                     } catch (e) {
-                        this.playFallbackSound('button');
+                        // Fallback
                     }
                 };
             }
             
-            createAchievementSound() {
+            createPurchaseSound(audioContext) {
                 return () => {
                     try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        
-                        // Восходящая последовательность нот
-                        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-                        
-                        notes.forEach((freq, i) => {
-                            const oscillator = audioContext.createOscillator();
-                            const gainNode = audioContext.createGain();
-                            
-                            oscillator.connect(gainNode);
-                            gainNode.connect(audioContext.destination);
-                            
-                            oscillator.frequency.value = freq;
-                            oscillator.type = 'triangle';
-                            
-                            gainNode.gain.setValueAtTime(0.1 * this.volume, audioContext.currentTime + i * 0.15);
-                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3 + i * 0.15);
-                            
-                            oscillator.start(audioContext.currentTime + i * 0.15);
-                            oscillator.stop(audioContext.currentTime + 0.3 + i * 0.15);
-                        });
-                    } catch (e) {
-                        this.playFallbackSound('achievement');
-                    }
-                };
-            }
-            
-            createBoostSound() {
-                return () => {
-                    try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.5);
-                        oscillator.type = 'sawtooth';
-                        
-                        gainNode.gain.setValueAtTime(0.12 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.5);
-                    } catch (e) {
-                        this.playFallbackSound('boost');
-                    }
-                };
-            }
-            
-            createPassiveSound() {
-                return () => {
-                    try {
-                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        
-                        // Создаем звук падающих монет
-                        for (let i = 0; i < 5; i++) {
+                        // Два коротких звука для кассового аппарата
+                        for (let i = 0; i < 2; i++) {
                             setTimeout(() => {
                                 const oscillator = audioContext.createOscillator();
                                 const gainNode = audioContext.createGain();
@@ -2114,48 +1928,129 @@
                                 oscillator.connect(gainNode);
                                 gainNode.connect(audioContext.destination);
                                 
-                                oscillator.frequency.value = 600 + Math.random() * 200;
+                                oscillator.frequency.value = 800 + i * 200;
                                 oscillator.type = 'square';
                                 
-                                gainNode.gain.setValueAtTime(0.04 * this.volume, audioContext.currentTime);
-                                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                                gainNode.gain.setValueAtTime(0.07 * this.volume, audioContext.currentTime);
+                                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
                                 
                                 oscillator.start();
-                                oscillator.stop(audioContext.currentTime + 0.2);
+                                oscillator.stop(audioContext.currentTime + 0.1);
                             }, i * 50);
                         }
                     } catch (e) {
-                        this.playFallbackSound('passive');
+                        // Fallback
                     }
                 };
             }
             
-            playFallbackSound(type) {
-                // Простой fallback с использованием стандартного Audio
-                if (this.muted) return;
+            createAchievementSound(audioContext) {
+                return () => {
+                    try {
+                        // Несколько нот для триумфального звука
+                        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+                        
+                        notes.forEach((freq, i) => {
+                            setTimeout(() => {
+                                const oscillator = audioContext.createOscillator();
+                                const gainNode = audioContext.createGain();
+                                
+                                oscillator.connect(gainNode);
+                                gainNode.connect(audioContext.destination);
+                                
+                                oscillator.frequency.value = freq;
+                                oscillator.type = 'triangle';
+                                
+                                gainNode.gain.setValueAtTime(0.12 * this.volume, audioContext.currentTime);
+                                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+                                
+                                oscillator.start();
+                                oscillator.stop(audioContext.currentTime + 0.2);
+                            }, i * 100);
+                        });
+                    } catch (e) {
+                        // Fallback
+                    }
+                };
+            }
+            
+            createBoostSound(audioContext) {
+                return () => {
+                    try {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.4);
+                        oscillator.type = 'sawtooth';
+                        
+                        gainNode.gain.setValueAtTime(0.15 * this.volume, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.4);
+                    } catch (e) {
+                        // Fallback
+                    }
+                };
+            }
+            
+            createPassiveSound(audioContext) {
+                return () => {
+                    try {
+                        // Тихий звук падающих монет (воспроизводится редко)
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = 700 + Math.random() * 100;
+                        oscillator.type = 'square';
+                        
+                        gainNode.gain.setValueAtTime(0.04 * this.volume, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.3);
+                    } catch (e) {
+                        // Fallback
+                    }
+                };
+            }
+            
+            playFallbackCoinSound() {
+                // Простой fallback для старых браузеров
+                if (this.muted || this.volume === 0) return;
                 
-                const audio = new Audio();
-                audio.volume = this.volume;
-                
-                // Базовые тоны для разных типов звуков
-                switch(type) {
-                    case 'coin':
-                        // Короткий высокий звук
-                        audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ';
-                        break;
-                    case 'upgrade':
-                        // Восходящий тон
-                        audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ';
-                        break;
-                    case 'button':
-                        // Короткий низкий звук
-                        audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ';
-                        break;
+                try {
+                    // Используем базовый Audio объект
+                    const audio = new Audio();
+                    audio.volume = this.volume * 0.3;
+                    
+                    // Создаем простой звуковой сигнал через data URL
+                    // Это короткий beep звук
+                    const context = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = context.createOscillator();
+                    const gainNode = context.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(context.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.1, context.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.1);
+                    
+                    oscillator.start();
+                    oscillator.stop(context.currentTime + 0.1);
+                } catch (e) {
+                    // Если ничего не работает, просто пропускаем звук
                 }
-                
-                audio.play().catch(() => {
-                    // Игнорируем ошибки воспроизведения
-                });
             }
             
             setupVolumeControls() {
@@ -2163,25 +2058,33 @@
                 const soundIcon = document.getElementById('sound-icon');
                 
                 // Устанавливаем начальное значение
-                volumeSlider.value = this.volume;
+                if (volumeSlider) {
+                    volumeSlider.value = this.volume;
+                }
                 
                 // Обработчик изменения громкости
-                volumeSlider.addEventListener('input', (e) => {
-                    this.volume = parseFloat(e.target.value);
-                    this.updateSoundIcon();
-                });
+                if (volumeSlider) {
+                    volumeSlider.addEventListener('input', (e) => {
+                        this.volume = parseFloat(e.target.value);
+                        this.updateSoundIcon();
+                    });
+                }
                 
                 // Обработчик клика по иконке звука
-                soundIcon.addEventListener('click', () => {
-                    this.muted = !this.muted;
-                    this.updateSoundIcon();
-                });
+                if (soundIcon) {
+                    soundIcon.addEventListener('click', () => {
+                        this.muted = !this.muted;
+                        this.updateSoundIcon();
+                    });
+                }
                 
                 this.updateSoundIcon();
             }
             
             updateSoundIcon() {
                 const soundIcon = document.getElementById('sound-icon');
+                if (!soundIcon) return;
+                
                 if (this.muted || this.volume === 0) {
                     soundIcon.className = 'fas fa-volume-mute';
                 } else if (this.volume < 0.5) {
@@ -2195,7 +2098,11 @@
                 if (this.muted || this.volume === 0) return;
                 
                 if (this.sounds[soundName]) {
-                    this.sounds[soundName]();
+                    try {
+                        this.sounds[soundName]();
+                    } catch (e) {
+                        // Игнорируем ошибки воспроизведения
+                    }
                 }
             }
             
@@ -2249,13 +2156,16 @@
         let pizzaMode = false;
         
         // Переменные для пассивного дохода
-        let passiveIncomeActive = false;
-        let passiveIncomeRate = 0; // монет в секунду
-        const PASSIVE_INCOME_BASE_RATE = 500;
-        let passiveIncomeCost = 1000;
+        let passiveIncomeLevel = 0; // Уровень прокачки (0 = не куплено)
+        let passiveIncomeRate = 0; // Текущий доход в секунду
+        let passiveIncomeCost = 500; // Стоимость следующего улучшения
+        let passiveIncomeActive = false; // Включен ли пассивный доход
         let totalOfflineCoins = 0;
         let lastSaveTime = Date.now();
         let passiveIncomeInterval = null;
+        
+        // Переменные для авто-улучшения
+        let autoUpgradeEnabled = false; // Автоматическое улучшение множителя
         
         // Система звуков
         let soundSystem;
@@ -2266,12 +2176,10 @@
         const clickableItemEl = document.getElementById('clickable-item');
         const clickableContainerEl = document.getElementById('clickable-container');
         const coinEl = document.getElementById('coin');
-        const coinEffectEl = document.getElementById('coin-effect');
         const hatEl = document.getElementById('hat');
-        const hatEffectEl = document.getElementById('hat-effect');
         const pizzaEl = document.getElementById('pizza');
-        const pizzaEffectEl = document.getElementById('pizza-effect');
         const multiplyBtn = document.getElementById('multiply-btn');
+        const upgradeBtn = document.getElementById('upgrade-btn');
         const shopBtn = document.getElementById('shop-btn');
         const achievementsBtn = document.getElementById('achievements-btn');
         const saveBtn = document.getElementById('save-btn');
@@ -2289,12 +2197,14 @@
         const nextMultiplierEl = document.getElementById('next-multiplier');
         const boostCountEl = document.getElementById('boost-count');
         const achievementsListEl = document.getElementById('achievements-list');
+        const upgradesListEl = document.getElementById('upgrades-list');
         const boostBtn = document.getElementById('boost-btn');
         const particlesEl = document.getElementById('particles');
-        const passiveIncomeIndicator = document.getElementById('passive-income-indicator');
-        const passiveIncomeAmount = document.getElementById('passive-income-amount');
         const passiveIncomeStat = document.getElementById('passive-income-stat');
         const offlineCoinsEl = document.getElementById('offline-coins');
+        const passiveToggle = document.getElementById('passive-toggle');
+        const passiveToggleContainer = document.getElementById('passive-toggle-container');
+        const autoUpgradeToggle = document.getElementById('auto-upgrade-toggle');
         
         // Элементы магазина
         const shopModal = document.getElementById('shop-modal');
@@ -2305,17 +2215,15 @@
         const shopBalance = document.getElementById('shop-balance');
         const boostPriceEl = document.getElementById('boost-price');
         const boostPurchasedEl = document.getElementById('boost-purchased');
-        const passiveIncomeItem = document.getElementById('passive-income-item');
-        const passiveIncomePrice = document.getElementById('passive-income-price');
-        const passiveIncomeStatusText = document.getElementById('passive-income-status-text');
-        const passiveIncomeRateEl = document.getElementById('passive-income-rate');
         
         // Флаг для предотвращения множественных кликов
         let isProcessingClick = false;
+        let lastClickTime = 0;
+        const MIN_CLICK_INTERVAL = 50; // Минимальное время между кликами (мс)
         
         // Функция для создания частиц
         function createParticles() {
-            const particlesCount = 50;
+            const particlesCount = 30; // Уменьшили количество для оптимизации
             
             for (let i = 0; i < particlesCount; i++) {
                 const particle = document.createElement('div');
@@ -2323,9 +2231,9 @@
                 
                 const posX = Math.random() * 100;
                 const posY = Math.random() * 100;
-                const size = Math.random() * 4 + 1;
-                const opacity = Math.random() * 0.5 + 0.2;
-                const duration = Math.random() * 20 + 10;
+                const size = Math.random() * 3 + 1;
+                const opacity = Math.random() * 0.4 + 0.1;
+                const duration = Math.random() * 15 + 10;
                 const delay = Math.random() * 5;
                 
                 particle.style.left = `${posX}%`;
@@ -2336,20 +2244,6 @@
                 particle.style.animation = `floatParticle ${duration}s linear ${delay}s infinite`;
                 
                 particlesEl.appendChild(particle);
-            }
-        }
-        
-        // Функция для создания пепперони на пицце
-        function createPepperoni() {
-            // Очищаем старые пепперони
-            const oldPepperoni = document.querySelectorAll('.pizza-pepperoni');
-            oldPepperoni.forEach(p => p.remove());
-            
-            // Создаем 8 пепперони на пицце
-            for (let i = 0; i < 8; i++) {
-                const pepperoni = document.createElement('div');
-                pepperoni.className = 'pizza-pepperoni';
-                pizzaEl.appendChild(pepperoni);
             }
         }
         
@@ -2386,7 +2280,7 @@
                     return billions.toFixed(2).replace(/\.00$/, '') + 'B';
                 }
             } else if (num >= 1000000) {
-                const millions = num / 1000000000;
+                const millions = num / 1000000;
                 if (millions >= 10) {
                     return Math.floor(millions) + 'M';
                 } else {
@@ -2447,13 +2341,27 @@
             createParticles();
             loadGame();
             
+            // ИСПРАВЛЕНИЕ: Инициализация визуальных элементов
+            coinEl.textContent = '🪙';
+            coinEl.style.display = 'block';
+            hatEl.style.display = 'none';
+            pizzaEl.style.display = 'none';
+            
             // Запускаем пассивный доход если он активен
-            if (passiveIncomeActive) {
+            if (passiveIncomeActive && passiveIncomeLevel > 0) {
                 startPassiveIncome();
+                passiveToggle.checked = true;
+                passiveToggleContainer.style.display = 'flex';
+            }
+            
+            // Показываем переключатель пассивного дохода если он куплен
+            if (passiveIncomeLevel > 0) {
+                passiveToggleContainer.style.display = 'flex';
             }
             
             updateUI();
             updateAchievementsList();
+            updateUpgradesList();
             updateShop();
             
             // Если пицца разблокирована, активируем режим пиццы
@@ -2467,6 +2375,11 @@
             multiplyBtn.addEventListener('click', () => {
                 soundSystem.play('upgrade');
                 upgradeMultiplier();
+            });
+            
+            upgradeBtn.addEventListener('click', () => {
+                soundSystem.play('button');
+                showUpgrades();
             });
             
             shopBtn.addEventListener('click', () => {
@@ -2510,10 +2423,21 @@
                 buyAutoClick();
             });
             
-            // Обработчик покупки пассивного дохода
-            passiveIncomeItem.addEventListener('click', () => {
-                soundSystem.play('purchase');
-                buyPassiveIncome();
+            // Обработчик переключателя пассивного дохода
+            passiveToggle.addEventListener('change', function() {
+                passiveIncomeActive = this.checked;
+                if (passiveIncomeActive && passiveIncomeLevel > 0) {
+                    startPassiveIncome();
+                } else {
+                    stopPassiveIncome();
+                }
+                saveGame();
+            });
+            
+            // Обработчик переключателя авто-улучшения
+            autoUpgradeToggle.addEventListener('change', function() {
+                autoUpgradeEnabled = this.checked;
+                saveGame();
             });
             
             // Обработчик для секретной пиццы (10 кликов по статистике)
@@ -2547,6 +2471,13 @@
             
             // Автосохранение каждые 30 секунд
             setInterval(saveGame, 30000);
+            
+            // Проверяем авто-улучшение каждую секунду
+            setInterval(() => {
+                if (autoUpgradeEnabled && coins >= nextMultiplierCost) {
+                    upgradeMultiplier();
+                }
+            }, 1000);
         }
         
         // Обработчик для активации секретной пиццы
@@ -2572,25 +2503,18 @@
             pizzaMode = true;
             document.body.classList.add('pizza-mode');
             
-            // Скрываем все остальные скины
-            coinEl.style.display = 'none';
-            coinEffectEl.style.display = 'none';
-            hatEl.style.display = 'none';
-            hatEffectEl.style.display = 'none';
-            
-            // Показываем пиццу
-            pizzaEl.style.display = 'block';
-            pizzaEffectEl.style.display = 'block';
-            
-            // Создаем пепперони
-            createPepperoni();
-            
-            // Обновляем текст этапа
+            // Обновляем отображение
             if (stage === 1) {
+                coinEl.style.display = 'none';
+                hatEl.style.display = 'none';
+                pizzaEl.style.display = 'block';
                 gameStageEl.textContent = 'Секретный режим: Пицца Пепперони!';
                 gameStageEl.style.borderColor = '#E74C3C';
                 gameStageEl.style.boxShadow = '0 0 15px rgba(231, 76, 60, 0.6)';
             } else if (stage === 2) {
+                coinEl.style.display = 'none';
+                hatEl.style.display = 'block';
+                pizzaEl.style.display = 'none';
                 gameStageEl.textContent = 'Этап 2 + Пицца: Черная шляпа с пепперони!';
                 gameStageEl.style.borderColor = '#9C27B0';
                 gameStageEl.style.boxShadow = '0 0 15px rgba(156, 39, 176, 0.6)';
@@ -2649,8 +2573,11 @@
         
         // Основная функция обработки клика
         function processClick(e) {
-            if (isProcessingClick) return;
+            const now = Date.now();
+            if (isProcessingClick || now - lastClickTime < MIN_CLICK_INTERVAL) return;
+            
             isProcessingClick = true;
+            lastClickTime = now;
             
             // Воспроизводим звук клика
             soundSystem.play('coinClick');
@@ -2658,13 +2585,10 @@
             // Визуальная обратная связь
             if (pizzaMode) {
                 pizzaEl.classList.add('active');
-                pizzaEffectEl.classList.add('active');
             } else if (stage === 1) {
                 coinEl.classList.add('active');
-                coinEffectEl.classList.add('active');
             } else {
                 hatEl.classList.add('active');
-                hatEffectEl.classList.add('active');
             }
             
             // Игровая логика
@@ -2704,17 +2628,6 @@
                 }
                 isProcessingClick = false;
             }, 100);
-            
-            // Сбрасываем эффект
-            setTimeout(() => {
-                if (pizzaMode) {
-                    pizzaEffectEl.classList.remove('active');
-                } else if (stage === 1) {
-                    coinEffectEl.classList.remove('active');
-                } else {
-                    hatEffectEl.classList.remove('active');
-                }
-            }, 400);
         }
         
         // Создание анимации числа при клике
@@ -2774,72 +2687,105 @@
             }, 800);
         }
         
-        // Открытие магазина
-        function openShop() {
-            shopModal.style.display = 'flex';
-            updateShop();
+        // Показать секцию прокачки
+        function showUpgrades() {
+            document.querySelector('.upgrades-section').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
         
-        // Закрытие магазина
-        function closeShop() {
-            shopModal.style.display = 'none';
+        // Обновление списка прокачек
+        function updateUpgradesList() {
+            const upgradesData = [
+                { 
+                    id: 'passive-income', 
+                    title: 'Пассивный доход', 
+                    description: 'Зарабатывает монеты автоматически каждую секунду', 
+                    icon: 'fas fa-piggy-bank',
+                    level: passiveIncomeLevel,
+                    maxLevel: 20,
+                    baseCost: 500,
+                    costMultiplier: 1.5,
+                    getCurrentValue: () => passiveIncomeRate,
+                    getNextValue: () => calculatePassiveIncomeRate(passiveIncomeLevel + 1),
+                    upgrade: buyPassiveIncomeUpgrade
+                }
+            ];
+            
+            upgradesListEl.innerHTML = '';
+            
+            upgradesData.forEach(upgrade => {
+                const upgradeItem = document.createElement('div');
+                upgradeItem.className = 'upgrade-item';
+                upgradeItem.addEventListener('click', () => {
+                    soundSystem.play('button');
+                    upgrade.upgrade();
+                });
+                
+                const nextLevel = upgrade.level + 1;
+                const nextCost = Math.floor(passiveIncomeCost); // ИСПРАВЛЕНИЕ: используем правильную переменную стоимости
+                const canAfford = coins >= nextCost && upgrade.level < upgrade.maxLevel;
+                
+                upgradeItem.innerHTML = `
+                    <div class="achievement-title"><i class="${upgrade.icon}"></i> ${upgrade.title} Ур.${upgrade.level}/${upgrade.maxLevel}</div>
+                    <div>${upgrade.description}</div>
+                    <div style="margin-top: 10px; color: #4CAF50; font-weight: 600;">
+                        Текущий доход: ${formatNumber(upgrade.getCurrentValue())} монет/сек
+                    </div>
+                    <div style="margin-top: 5px; color: #FFD700; font-weight: 600;">
+                        Следующий уровень: ${formatNumber(upgrade.getNextValue())} монет/сек
+                    </div>
+                    <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: ${canAfford ? '#4CAF50' : '#f44336'}; font-weight: 700;">
+                            ${upgrade.level >= upgrade.maxLevel ? 'Макс. уровень' : `${formatNumber(nextCost)} монет`}
+                        </span>
+                        <button style="padding: 8px 16px; background: ${canAfford ? '#4CAF50' : '#757575'}; color: white; border: none; border-radius: 8px; cursor: ${canAfford ? 'pointer' : 'not-allowed'}; font-weight: 700;">
+                            ${upgrade.level >= upgrade.maxLevel ? 'Макс.' : 'Улучшить'}
+                        </button>
+                    </div>
+                `;
+                
+                upgradesListEl.appendChild(upgradeItem);
+            });
         }
         
-        // Обновление магазина
-        function updateShop() {
-            shopBalance.textContent = formatNumber(coins);
-            boostPriceEl.textContent = formatNumberDetailed(currentBoostCost) + ' 🪙';
-            boostPurchasedEl.textContent = boostPurchasedCount;
-            passiveIncomePrice.textContent = formatNumberDetailed(passiveIncomeCost) + ' 🪙';
-            passiveIncomeRateEl.textContent = formatNumber(passiveIncomeRate);
-            
-            // Проверяем доступность товаров
-            if (coins >= currentBoostCost && !autoClickActive) {
-                autoclickItem.classList.remove('disabled');
-            } else {
-                autoclickItem.classList.add('disabled');
-            }
-            
-            if (coins >= passiveIncomeCost && !passiveIncomeActive) {
-                passiveIncomeItem.classList.remove('disabled');
-                passiveIncomeStatusText.textContent = 'Доступно';
-            } else if (passiveIncomeActive) {
-                passiveIncomeItem.classList.add('disabled');
-                passiveIncomeStatusText.textContent = 'Активно';
-                passiveIncomeItem.style.opacity = '0.8';
-            } else {
-                passiveIncomeItem.classList.add('disabled');
-                passiveIncomeStatusText.textContent = 'Недостаточно монет';
-            }
-            
-            if (autoClickActive) {
-                autoclickTimer.style.display = 'block';
-                autoclickTime.textContent = autoClickTimeLeft;
-            } else {
-                autoclickTimer.style.display = 'none';
-            }
+        // Расчет дохода пассивного дохода по уровню
+        function calculatePassiveIncomeRate(level) {
+            // Базовая формула: 500 * (уровень^1.2)
+            return Math.floor(500 * Math.pow(level, 1.2));
         }
         
-        // Покупка пассивного дохода
-        function buyPassiveIncome() {
-            if (coins >= passiveIncomeCost && !passiveIncomeActive) {
-                coins -= passiveIncomeCost;
-                passiveIncomeActive = true;
-                passiveIncomeRate = PASSIVE_INCOME_BASE_RATE;
-                achievements.passiveIncome = true;
+        // ИСПРАВЛЕНИЕ: Покупка улучшения пассивного дохода
+        function buyPassiveIncomeUpgrade() {
+            const nextCost = passiveIncomeCost;
+            
+            if (coins >= nextCost && passiveIncomeLevel < 20) {
+                coins -= nextCost;
+                passiveIncomeLevel++;
+                passiveIncomeRate = calculatePassiveIncomeRate(passiveIncomeLevel);
+                passiveIncomeCost = Math.floor(passiveIncomeCost * 1.5);
+                
+                // Показываем переключатель после первой покупки
+                if (passiveIncomeLevel === 1) {
+                    passiveToggleContainer.style.display = 'flex';
+                    achievements.passiveIncome = true;
+                    updateAchievementsList();
+                }
                 
                 // Воспроизводим звук покупки
                 soundSystem.play('purchase');
                 
                 // Показываем уведомление
-                showPurchaseNotification('Пассивный доход активирован!');
+                showPurchaseNotification(`Пассивный доход улучшен до ур.${passiveIncomeLevel}!`);
                 
-                // Запускаем пассивный доход
-                startPassiveIncome();
+                // Если пассивный доход был активен, перезапускаем его
+                if (passiveIncomeActive) {
+                    startPassiveIncome();
+                }
                 
                 updateUI();
-                updateShop();
-                updateAchievementsList();
+                updateUpgradesList();
                 
                 saveGame();
             }
@@ -2847,10 +2793,6 @@
         
         // Запуск пассивного дохода
         function startPassiveIncome() {
-            // Показываем индикатор
-            passiveIncomeIndicator.style.display = 'inline-block';
-            passiveIncomeAmount.textContent = formatNumber(passiveIncomeRate);
-            
             // Останавливаем предыдущий интервал если есть
             if (passiveIncomeInterval) {
                 clearInterval(passiveIncomeInterval);
@@ -2868,11 +2810,6 @@
                     soundSystem.play('passive');
                 }
                 
-                // Автоматически улучшаем множитель если достаточно монет
-                if (coins >= nextMultiplierCost) {
-                    autoUpgradeMultiplier();
-                }
-                
                 // Обновляем UI каждую секунду
                 updateUI();
                 
@@ -2884,35 +2821,43 @@
             }, 1000);
         }
         
-        // Автоматическое улучшение множителя
-        function autoUpgradeMultiplier() {
-            if (coins >= nextMultiplierCost) {
-                coins = 0;
-                
-                if (stage === 1) {
-                    multiplier++;
-                    
-                    if (multiplier >= maxMultiplierStage1) {
-                        activateSecretStage();
-                        return;
-                    }
-                    
-                    nextMultiplierCost = Math.floor(nextMultiplierCost * 1.5);
-                } else {
-                    multiplier += 100;
-                    nextMultiplierCost += 5000;
-                    
-                    if (multiplier >= 500 && !achievements.multiplier500) {
-                        achievements.multiplier500 = true;
-                    }
-                }
-                
-                // Воспроизводим звук улучшения
-                soundSystem.play('upgrade');
-                
-                updateUI();
-                updateMultiplyButton();
-                updateAchievementsList();
+        // Остановка пассивного дохода
+        function stopPassiveIncome() {
+            if (passiveIncomeInterval) {
+                clearInterval(passiveIncomeInterval);
+                passiveIncomeInterval = null;
+            }
+        }
+        
+        // Открытие магазина
+        function openShop() {
+            shopModal.style.display = 'flex';
+            updateShop();
+        }
+        
+        // Закрытие магазина
+        function closeShop() {
+            shopModal.style.display = 'none';
+        }
+        
+        // Обновление магазина
+        function updateShop() {
+            shopBalance.textContent = formatNumber(coins);
+            boostPriceEl.textContent = formatNumberDetailed(currentBoostCost) + ' 🪙';
+            boostPurchasedEl.textContent = boostPurchasedCount;
+            
+            // Проверяем доступность товаров
+            if (coins >= currentBoostCost && !autoClickActive) {
+                autoclickItem.classList.remove('disabled');
+            } else {
+                autoclickItem.classList.add('disabled');
+            }
+            
+            if (autoClickActive) {
+                autoclickTimer.style.display = 'block';
+                autoclickTime.textContent = autoClickTimeLeft;
+            } else {
+                autoclickTimer.style.display = 'none';
             }
         }
         
@@ -2998,7 +2943,7 @@
                     totalCoins += coinsEarned;
                     
                     // Воспроизводим звук клика (редко, чтобы не перегружать)
-                    if (clickCounter % 20 === 0) {
+                    if (clickCounter % 40 === 0) {
                         soundSystem.play('coinClick');
                     }
                     
@@ -3052,7 +2997,7 @@
         // Улучшение множителя (ручное)
         function upgradeMultiplier() {
             if (coins >= nextMultiplierCost) {
-                coins = 0;
+                coins -= nextMultiplierCost;
                 
                 if (stage === 1) {
                     multiplier++;
@@ -3075,29 +3020,28 @@
                 
                 updateUI();
                 updateMultiplyButton();
+                saveGame();
             }
         }
         
         // Активация секретного этапа
         function activateSecretStage() {
             stage = 2;
-            coins = 0;
             multiplier = 500;
             nextMultiplierCost = 5000;
             achievements.blackHat = true;
             
-            secretModal.style.display = 'flex';
+            // Обновляем отображение
+            coinEl.style.display = 'none';
+            hatEl.style.display = 'block';
             
             if (!pizzaMode) {
-                coinEl.style.display = 'none';
-                coinEffectEl.style.display = 'none';
-                hatEl.style.display = 'block';
-                hatEffectEl.style.display = 'block';
                 gameStageEl.textContent = 'Этап 2: Черная шляпа';
             } else {
-                // Если пицца активна, обновляем только текст
                 gameStageEl.textContent = 'Этап 2 + Пицца: Черная шляпа с пепперони!';
             }
+            
+            secretModal.style.display = 'flex';
             
             // Воспроизводим звук достижения
             soundSystem.play('achievement');
@@ -3146,11 +3090,6 @@
                 nextMultiplierEl.textContent = `x${multiplier + 100}`;
             }
             
-            // Обновляем индикатор пассивного дохода если активен
-            if (passiveIncomeActive) {
-                passiveIncomeAmount.textContent = formatNumber(passiveIncomeRate);
-            }
-            
             updateMultiplyButton();
             updateAchievementsList();
         }
@@ -3185,8 +3124,9 @@
                 { id: 'boostMaster', title: 'Мастер бустов', description: 'Купите 5 бустов', condition: boostPurchasedCount >= 5, unlocked: boostPurchasedCount >= 5, icon: 'fas fa-bolt' },
                 { id: 'richPlayer', title: 'Богатый игрок', description: 'Заработайте 1 миллион монет', condition: totalCoins >= 1000000, unlocked: totalCoins >= 1000000, icon: 'fas fa-crown' },
                 { id: 'pizzaSecret', title: 'Секретная пицца', description: 'Разблокируйте скрытый скин пиццы', condition: pizzaUnlocked, unlocked: achievements.pizzaSecret, icon: 'fas fa-pizza-slice' },
-                { id: 'passiveIncome', title: 'Пассивный доход', description: 'Купите пассивный доход', condition: passiveIncomeActive, unlocked: achievements.passiveIncome, icon: 'fas fa-piggy-bank' },
-                { id: 'offlineKing', title: 'Король офлайна', description: 'Заработайте 100k монет офлайн', condition: totalOfflineCoins >= 100000, unlocked: totalOfflineCoins >= 100000, icon: 'fas fa-bed' }
+                { id: 'passiveIncome', title: 'Пассивный доход', description: 'Купите пассивный доход', condition: passiveIncomeLevel >= 1, unlocked: achievements.passiveIncome, icon: 'fas fa-piggy-bank' },
+                { id: 'offlineKing', title: 'Король офлайна', description: 'Заработайте 100k монет офлайн', condition: totalOfflineCoins >= 100000, unlocked: totalOfflineCoins >= 100000, icon: 'fas fa-bed' },
+                { id: 'maxPassive', title: 'Максимальный пассив', description: 'Максимально улучшите пассивный доход', condition: passiveIncomeLevel >= 20, unlocked: passiveIncomeLevel >= 20, icon: 'fas fa-chart-line' }
             ];
             
             achievementsListEl.innerHTML = '';
@@ -3223,9 +3163,12 @@
                 currentBoostCost,
                 pizzaUnlocked,
                 pizzaMode,
-                passiveIncomeActive,
+                passiveIncomeLevel,
                 passiveIncomeRate,
+                passiveIncomeCost,
+                passiveIncomeActive,
                 totalOfflineCoins,
+                autoUpgradeEnabled,
                 lastSaveTime: Date.now()
             };
             
@@ -3270,13 +3213,17 @@
                     pizzaUnlocked = gameData.pizzaUnlocked || false;
                     pizzaMode = gameData.pizzaMode || false;
                     
-                    passiveIncomeActive = gameData.passiveIncomeActive || false;
+                    passiveIncomeLevel = gameData.passiveIncomeLevel || 0;
                     passiveIncomeRate = gameData.passiveIncomeRate || 0;
+                    passiveIncomeCost = gameData.passiveIncomeCost || 500;
+                    passiveIncomeActive = gameData.passiveIncomeActive || false;
                     totalOfflineCoins = gameData.totalOfflineCoins || 0;
+                    
+                    autoUpgradeEnabled = gameData.autoUpgradeEnabled || false;
                     lastSaveTime = gameData.lastSaveTime || Date.now();
                     
                     // Рассчитываем офлайн доход
-                    if (passiveIncomeActive && lastSaveTime) {
+                    if (passiveIncomeLevel > 0 && passiveIncomeActive && lastSaveTime) {
                         const now = Date.now();
                         const offlineSeconds = Math.floor((now - lastSaveTime) / 1000);
                         
@@ -3313,12 +3260,19 @@
                         }
                     }
                     
-                    if (stage === 2 && !pizzaMode) {
+                    // Обновляем отображение в зависимости от этапа
+                    if (stage === 2) {
                         coinEl.style.display = 'none';
-                        coinEffectEl.style.display = 'none';
                         hatEl.style.display = 'block';
-                        hatEffectEl.style.display = 'block';
-                        gameStageEl.textContent = 'Этап 2: Черная шляпа';
+                        if (!pizzaMode) {
+                            gameStageEl.textContent = 'Этап 2: Черная шляпа';
+                        } else {
+                            gameStageEl.textContent = 'Этап 2 + Пицца: Черная шляпа с пепперони!';
+                        }
+                    }
+                    
+                    if (pizzaMode) {
+                        activatePizzaMode();
                     }
                     
                     if (autoClickActive && autoClickTimeLeft > 0) {
@@ -3329,6 +3283,11 @@
                             boostBtn.classList.add('active');
                             boostBtn.textContent = 'Буст активен!';
                         }
+                    }
+                    
+                    // Устанавливаем состояние переключателей
+                    if (autoUpgradeToggle) {
+                        autoUpgradeToggle.checked = autoUpgradeEnabled;
                     }
                     
                 } catch (e) {
@@ -3364,33 +3323,37 @@
                 pizzaUnlocked = false;
                 pizzaMode = false;
                 
-                passiveIncomeActive = false;
+                passiveIncomeLevel = 0;
                 passiveIncomeRate = 0;
+                passiveIncomeCost = 500;
+                passiveIncomeActive = false;
                 totalOfflineCoins = 0;
+                autoUpgradeEnabled = false;
                 
                 if (clickInterval) clearInterval(clickInterval);
                 if (autoClickInterval) clearInterval(autoClickInterval);
                 if (passiveIncomeInterval) clearInterval(passiveIncomeInterval);
                 
+                // Сброс отображения
                 coinEl.style.display = 'block';
-                coinEffectEl.style.display = 'block';
                 hatEl.style.display = 'none';
-                hatEffectEl.style.display = 'none';
                 pizzaEl.style.display = 'none';
-                pizzaEffectEl.style.display = 'none';
                 gameStageEl.textContent = 'Этап 1: Золотая монета';
                 gameStageEl.style.borderColor = '#FFD700';
                 gameStageEl.style.boxShadow = '0 0 12px rgba(255, 215, 0, 0.3)';
                 boostBtn.style.display = 'none';
                 boostBtn.disabled = false;
                 boostBtn.classList.remove('active');
-                passiveIncomeIndicator.style.display = 'none';
+                passiveToggleContainer.style.display = 'none';
+                if (passiveToggle) passiveToggle.checked = false;
+                if (autoUpgradeToggle) autoUpgradeToggle.checked = false;
                 document.body.classList.remove('pizza-mode');
                 
                 localStorage.removeItem('coinClickerGame');
                 
                 updateUI();
                 updateShop();
+                updateUpgradesList();
                 updateAchievementsList();
             }
         }
