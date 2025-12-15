@@ -2613,201 +2613,230 @@ async function sendFriendRequest(friendId, friendName) {
     }
 }
         
-        // Функция загрузки списка друзей
-        async function loadFriendsList() {
-            if (!supabase || !currentUserId) return;
+        // Функция загрузки списка друзей (ИСПРАВЛЕННАЯ)
+async function loadFriendsList() {
+    if (!supabase || !currentUserId) return;
+    
+    console.log('Загрузка списка друзей для пользователя:', currentUserId);
+    
+    try {
+        // Получаем ВХОДЯЩИЕ запросы (другие хотят добавить меня в друзья)
+        const { data: incomingRequests, error: incomingError } = await supabase
+            .from('friend_requests')
+            .select(`
+                sender_id,
+                user_profiles!friend_requests_sender_id_fkey(user_id, username, coins, multiplier)
+            `)
+            .eq('receiver_id', currentUserId)
+            .eq('status', 'pending');
+        
+        if (incomingError) {
+            console.error('Ошибка загрузки входящих запросов:', incomingError);
+        } else {
+            console.log('Входящие запросы:', incomingRequests);
+        }
+        
+        // Получаем ИСХОДЯЩИЕ запросы (я отправил запросы другим)
+        const { data: outgoingRequests, error: outgoingError } = await supabase
+            .from('friend_requests')
+            .select(`
+                receiver_id,
+                user_profiles!friend_requests_receiver_id_fkey(user_id, username, coins, multiplier)
+            `)
+            .eq('sender_id', currentUserId)
+            .eq('status', 'pending');
+        
+        if (outgoingError) {
+            console.error('Ошибка загрузки исходящих запросов:', outgoingError);
+        } else {
+            console.log('Исходящие запросы:', outgoingRequests);
+        }
+        
+        // Получаем ПРИНЯТЫХ друзей (статус 'accepted')
+        const { data: acceptedRequests, error: acceptedError } = await supabase
+            .from('friend_requests')
+            .select(`
+                sender_id,
+                receiver_id,
+                status
+            `)
+            .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
+            .eq('status', 'accepted');
+        
+        if (acceptedError) {
+            console.error('Ошибка загрузки друзей:', acceptedError);
+        } else {
+            console.log('Принятые запросы:', acceptedRequests);
+        }
+        
+        let html = '';
+        
+        // Показываем входящие запросы (с кнопками Принять/Отклонить)
+        if (incomingRequests && incomingRequests.length > 0) {
+            html += '<h3 style="color: #FFD700; margin-bottom: 15px;">Входящие запросы:</h3>';
+            incomingRequests.forEach(request => {
+                const friendProfile = request.user_profiles;
+                html += `
+                <div class="shop-item" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="color: #FFD700;">${friendProfile?.username || 'Игрок'}</strong><br>
+                            <small>Монеты: ${formatNumber(friendProfile?.coins || 0)} | Множитель: x${friendProfile?.multiplier || 1}</small>
+                        </div>
+                        <div>
+                            <button onclick="handleFriendRequest('${request.sender_id}', 'accept', '${friendProfile?.username || 'Игрок'}')" style="padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px;">
+                                Принять
+                            </button>
+                            <button onclick="handleFriendRequest('${request.sender_id}', 'reject', '${friendProfile?.username || 'Игрок'}')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                Отклонить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+        }
+        
+        // Показываем принятых друзей
+        if (acceptedRequests && acceptedRequests.length > 0) {
+            html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Ваши друзья:</h3>';
             
-            try {
-                // Получаем входящие запросы
-                const { data: incomingRequests, error: incomingError } = await supabase
-                    .from('friend_requests')
-                    .select(`
-                        sender_id,
-                        user_profiles!friend_requests_sender_id_fkey(username, coins, multiplier)
-                    `)
-                    .eq('receiver_id', currentUserId)
-                    .eq('status', 'pending');
+            // Для каждого принятого запроса получаем информацию о друге
+            for (const friendRequest of acceptedRequests) {
+                const friendId = friendRequest.sender_id === currentUserId ? friendRequest.receiver_id : friendRequest.sender_id;
                 
-                if (incomingError) {
-                    console.error('Ошибка загрузки входящих запросов:', incomingError);
-                }
+                // Получаем информацию о друге
+                const { data: friendData, error: friendError } = await supabase
+                    .from('user_profiles')
+                    .select('user_id, username, coins, multiplier')
+                    .eq('user_id', friendId)
+                    .single();
                 
-                // Получаем исходящие запросы
-                const { data: outgoingRequests, error: outgoingError } = await supabase
-                    .from('friend_requests')
-                    .select(`
-                        receiver_id,
-                        user_profiles!friend_requests_receiver_id_fkey(username, coins, multiplier)
-                    `)
-                    .eq('sender_id', currentUserId)
-                    .eq('status', 'pending');
-                
-                if (outgoingError) {
-                    console.error('Ошибка загрузки исходящих запросов:', outgoingError);
-                }
-                
-                // Получаем принятых друзей (те, у кого статус 'accepted')
-                const { data: acceptedRequests, error: acceptedError } = await supabase
-                    .from('friend_requests')
-                    .select(`
-                        sender_id,
-                        receiver_id,
-                        user_profiles!friend_requests_sender_id_fkey(username, coins, multiplier),
-                        user_profiles!friend_requests_receiver_id_fkey(username, coins, multiplier)
-                    `)
-                    .or(`and(sender_id.eq.${currentUserId},status.eq.accepted),and(receiver_id.eq.${currentUserId},status.eq.accepted)`);
-                
-                if (acceptedError) {
-                    console.error('Ошибка загрузки друзей:', acceptedError);
-                }
-                
-                let html = '';
-                
-                // Показываем входящие запросы
-                if (incomingRequests && incomingRequests.length > 0) {
-                    html += '<h3 style="color: #FFD700; margin-bottom: 15px;">Входящие запросы:</h3>';
-                    incomingRequests.forEach(request => {
-                        html += `
-                        <div class="shop-item" style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong style="color: #FFD700;">${request.user_profiles?.username || 'Игрок'}</strong><br>
-                                    <small>Монеты: ${formatNumber(request.user_profiles?.coins || 0)} | Множитель: x${request.user_profiles?.multiplier || 1}</small>
-                                </div>
-                                <div>
-                                    <button onclick="handleFriendRequest('${request.sender_id}', 'accept', '${request.user_profiles?.username || 'Игрок'}')" style="padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px;">
-                                        Принять
-                                    </button>
-                                    <button onclick="handleFriendRequest('${request.sender_id}', 'reject', '${request.user_profiles?.username || 'Игрок'}')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                                        Отклонить
-                                    </button>
-                                </div>
+                if (!friendError && friendData) {
+                    html += `
+                    <div class="shop-item" style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: #FFD700;">${friendData.username || 'Игрок'}</strong><br>
+                                <small>Монеты: ${formatNumber(friendData.coins || 0)} | Множитель: x${friendData.multiplier || 1}</small>
+                            </div>
+                            <div>
+                                <button onclick="openSendCoinsModal('${friendId}', '${friendData.username || 'Игрок'}', ${friendData.coins || 0}, ${friendData.multiplier || 1})" style="padding: 5px 10px; background: #FFD700; color: black; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px;">
+                                    <i class="fas fa-coins"></i> Отправить
+                                </button>
+                                <button onclick="removeFriend('${friendId}', '${friendData.username || 'Игрок'}')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                    Удалить
+                                </button>
                             </div>
                         </div>
-                        `;
-                    });
+                    </div>
+                    `;
                 }
-                
-                // Показываем друзей
-                if (acceptedRequests && acceptedRequests.length > 0) {
-                    html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Ваши друзья:</h3>';
-                    acceptedRequests.forEach(friend => {
-                        const friendId = friend.sender_id === currentUserId ? friend.receiver_id : friend.sender_id;
-                        let friendProfile;
-                        
-                        if (friend.sender_id === currentUserId) {
-                            friendProfile = friend.user_profiles_receiver_id_fkey;
-                        } else {
-                            friendProfile = friend.user_profiles_sender_id_fkey;
-                        }
-                        
-                        html += `
-                        <div class="shop-item" style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong style="color: #FFD700;">${friendProfile?.username || 'Игрок'}</strong><br>
-                                    <small>Монеты: ${formatNumber(friendProfile?.coins || 0)} | Множитель: x${friendProfile?.multiplier || 1}</small>
-                                </div>
-                                <div>
-                                    <button onclick="openSendCoinsModal('${friendId}', '${friendProfile?.username || 'Игрок'}', ${friendProfile?.coins || 0}, ${friendProfile?.multiplier || 1})" style="padding: 5px 10px; background: #FFD700; color: black; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px;">
-                                        <i class="fas fa-coins"></i> Отправить
-                                    </button>
-                                    <button onclick="removeFriend('${friendId}', '${friendProfile?.username || 'Игрок'}')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                                        Удалить
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    });
-                }
-                
-                // Показываем исходящие запросы
-                if (outgoingRequests && outgoingRequests.length > 0) {
-                    html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Исходящие запросы:</h3>';
-                    outgoingRequests.forEach(request => {
-                        html += `
-                        <div class="shop-item" style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong style="color: #FFD700;">${request.user_profiles?.username || 'Игрок'}</strong><br>
-                                    <small>Ожидает ответа...</small>
-                                </div>
-                                <div>
-                                    <button onclick="cancelFriendRequest('${request.receiver_id}', '${request.user_profiles?.username || 'Игрок'}')" style="padding: 5px 10px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                                        Отменить
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    });
-                }
-                
-                if (html === '') {
-                    html = '<div class="shop-item" style="text-align: center; color: #aaa;">У вас пока нет друзей. Используйте поиск выше, чтобы найти других игроков!</div>';
-                }
-                
-                document.getElementById('friends-list').innerHTML = html;
-                
-            } catch (error) {
-                console.error('Ошибка загрузки списка друзей:', error);
-                document.getElementById('friends-list').innerHTML = '<div class="shop-item" style="text-align: center; color: #f44336;">Ошибка загрузки списка друзей</div>';
             }
         }
         
-        // Обработка запроса в друзья (принять/отклонить)
-        async function handleFriendRequest(senderId, action, friendName) {
-            if (!supabase || !currentUserId) return;
-            
-            try {
-                const { error } = await supabase
-                    .from('friend_requests')
-                    .update({ 
-                        status: action,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('sender_id', senderId)
-                    .eq('receiver_id', currentUserId)
-                    .eq('status', 'pending');
-                
-                if (error) {
-                    console.error('Ошибка обработки запроса:', error);
-                    alert('Не удалось обработать запрос.');
-                } else {
-                    console.log(`Запрос ${action === 'accept' ? 'принят' : 'отклонен'}!`);
-                    loadFriendsList();
-                    alert(`Запрос в друзья от ${friendName} ${action === 'accept' ? 'принят' : 'отклонен'}!`);
-                }
-            } catch (error) {
-                console.error('Исключение при обработке запроса:', error);
-            }
+        // Показываем исходящие запросы (ожидающие ответа)
+        if (outgoingRequests && outgoingRequests.length > 0) {
+            html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Исходящие запросы:</h3>';
+            outgoingRequests.forEach(request => {
+                const friendProfile = request.user_profiles;
+                html += `
+                <div class="shop-item" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="color: #FFD700;">${friendProfile?.username || 'Игрок'}</strong><br>
+                            <small>Ожидает ответа...</small>
+                        </div>
+                        <div>
+                            <button onclick="cancelFriendRequest('${request.receiver_id}', '${friendProfile?.username || 'Игрок'}')" style="padding: 5px 10px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                Отменить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
         }
         
-        // Удаление друга
-        async function removeFriend(friendId, friendName) {
-            if (!supabase || !currentUserId) return;
-            
-            if (!confirm(`Вы уверены, что хотите удалить ${friendName} из друзей?`)) return;
-            
-            try {
-                const { error } = await supabase
-                    .from('friend_requests')
-                    .delete()
-                    .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserId})`)
-                    .eq('status', 'accepted');
-                
-                if (error) {
-                    console.error('Ошибка удаления друга:', error);
-                    alert('Не удалось удалить друга.');
-                } else {
-                    console.log('Друг удален!');
-                    loadFriendsList();
-                }
-            } catch (error) {
-                console.error('Исключение при удалении друга:', error);
-            }
+        if (html === '') {
+            html = '<div class="shop-item" style="text-align: center; color: #aaa;">У вас пока нет друзей. Используйте поиск выше, чтобы найти других игроков!</div>';
         }
+        
+        document.getElementById('friends-list').innerHTML = html;
+        
+    } catch (error) {
+        console.error('Ошибка загрузки списка друзей:', error);
+        document.getElementById('friends-list').innerHTML = '<div class="shop-item" style="text-align: center; color: #f44336;">Ошибка загрузки списка друзей: ' + error.message + '</div>';
+    }
+}
+        
+        // Обработка запроса в друзья (принять/отклонить) (ИСПРАВЛЕННАЯ)
+async function handleFriendRequest(senderId, action, friendName) {
+    if (!supabase || !currentUserId) return;
+    
+    console.log('Обработка запроса:', action, 'от', senderId);
+    
+    try {
+        const { error } = await supabase
+            .from('friend_requests')
+            .update({ 
+                status: action,
+                updated_at: new Date().toISOString()
+            })
+            .eq('sender_id', senderId)
+            .eq('receiver_id', currentUserId)
+            .eq('status', 'pending');
+        
+        if (error) {
+            console.error('Ошибка обработки запроса:', error);
+            alert('Не удалось обработать запрос: ' + error.message);
+        } else {
+            console.log(`Запрос ${action === 'accept' ? 'принят' : 'отклонен'}!`);
+            
+            // Перезагружаем список друзей
+            setTimeout(() => {
+                loadFriendsList();
+            }, 500);
+            
+            alert(`Запрос в друзья от ${friendName} ${action === 'accept' ? 'принят' : 'отклонен'}!`);
+        }
+    } catch (error) {
+        console.error('Исключение при обработке запроса:', error);
+        alert('Произошла ошибка при обработке запроса: ' + error.message);
+    }
+}
+        
+        // Удаление друга (ИСПРАВЛЕННАЯ)
+async function removeFriend(friendId, friendName) {
+    if (!supabase || !currentUserId) return;
+    
+    if (!confirm(`Вы уверены, что хотите удалить ${friendName} из друзей?`)) return;
+    
+    console.log('Удаление друга:', friendId);
+    
+    try {
+        const { error } = await supabase
+            .from('friend_requests')
+            .delete()
+            .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserId})`)
+            .eq('status', 'accepted');
+        
+        if (error) {
+            console.error('Ошибка удаления друга:', error);
+            alert('Не удалось удалить друга: ' + error.message);
+        } else {
+            console.log('Друг удален!');
+            
+            // Перезагружаем список друзей
+            setTimeout(() => {
+                loadFriendsList();
+            }, 500);
+        }
+    } catch (error) {
+        console.error('Исключение при удалении друга:', error);
+        alert('Произошла ошибка при удалении друга: ' + error.message);
+    }
+}
         
         // Отмена исходящего запроса
         async function cancelFriendRequest(receiverId, friendName) {
@@ -4022,4 +4051,3 @@ async function sendFriendRequest(friendId, friendName) {
     </script>
 </body>
 </html>
-
