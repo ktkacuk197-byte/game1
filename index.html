@@ -2532,49 +2532,86 @@
             }
         }
         
-        // Функция отправки запроса в друзья
-        async function sendFriendRequest(friendId, friendName) {
-            if (!supabase || !currentUserId) return;
-            
-            try {
-                // Сначала проверяем, нет ли уже запроса или дружбы
-                const { data: existingRequests, error: checkError } = await supabase
-                    .from('friend_requests')
-                    .select('*')
-                    .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserId})`);
-                
-                if (checkError) {
-                    console.error('Ошибка проверки запросов:', checkError);
-                    return;
-                }
-                
-                if (existingRequests && existingRequests.length > 0) {
-                    alert('Запрос на дружбу уже отправлен или вы уже друзья!');
-                    return;
-                }
-                
-                // Отправляем запрос
-                const { error } = await supabase
-                    .from('friend_requests')
-                    .insert({ 
-                        sender_id: currentUserId,
-                        receiver_id: friendId,
-                        status: 'pending',
-                        created_at: new Date().toISOString()
-                    });
-                
-                if (error) {
-                    console.error('Ошибка отправки запроса:', error);
-                    alert('Не удалось отправить запрос в друзья.');
+        // Функция отправки запроса в друзья (ИСПРАВЛЕНА)
+async function sendFriendRequest(friendId, friendName) {
+    if (!supabase || !currentUserId) {
+        alert('Система друзей не инициализирована');
+        return;
+    }
+    
+    // Нельзя добавить себя в друзья
+    if (friendId === currentUserId) {
+        alert('Нельзя добавить себя в друзья!');
+        return;
+    }
+    
+    try {
+        console.log('Отправка запроса в друзья:', currentUserId, '->', friendId);
+        
+        // Проверяем, нет ли уже запроса или дружбы
+        const { data: existingRequests, error: checkError } = await supabase
+            .from('friend_requests')
+            .select('*')
+            .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserId})`);
+        
+        if (checkError) {
+            console.error('Ошибка проверки запросов:', checkError);
+            alert('Ошибка проверки существующих запросов');
+            return;
+        }
+        
+        if (existingRequests && existingRequests.length > 0) {
+            const existingRequest = existingRequests[0];
+            if (existingRequest.status === 'pending') {
+                if (existingRequest.sender_id === currentUserId) {
+                    alert('Вы уже отправили запрос на дружбу этому игроку!');
                 } else {
-                    console.log('Запрос в друзья отправлен!');
-                    alert(`Запрос на дружбу отправлен игроку ${friendName}!`);
+                    alert('Этот игрок уже отправил вам запрос на дружбу!');
                 }
-            } catch (error) {
-                console.error('Исключение при отправке запроса:', error);
-                alert('Произошла ошибка при отправке запроса.');
+            } else if (existingRequest.status === 'accepted') {
+                alert('Вы уже друзья с этим игроком!');
+            } else if (existingRequest.status === 'rejected') {
+                alert('Запрос на дружбу был отклонен ранее');
+            }
+            return;
+        }
+        
+        // Отправляем запрос
+        const { data, error } = await supabase
+            .from('friend_requests')
+            .insert([{ 
+                sender_id: currentUserId,
+                receiver_id: friendId,
+                status: 'pending'
+            }])
+            .select();
+        
+        if (error) {
+            console.error('Ошибка отправки запроса:', error);
+            
+            // Проверяем конкретные ошибки
+            if (error.code === '42501') {
+                alert('Нет прав на отправку запроса. Проверьте политики доступа в Supabase.');
+            } else if (error.code === '42P01') {
+                alert('Таблица friend_requests не существует. Создайте её в Supabase.');
+            } else {
+                alert('Не удалось отправить запрос в друзья. Код ошибки: ' + error.code);
+            }
+        } else {
+            console.log('Запрос в друзья успешно отправлен!', data);
+            alert(`Запрос на дружбу отправлен игроку ${friendName}!`);
+            
+            // Обновляем результаты поиска
+            const query = friendSearchInput.value.trim();
+            if (query.length >= 2) {
+                searchFriends(query);
             }
         }
+    } catch (error) {
+        console.error('Исключение при отправке запроса:', error);
+        alert('Произошла ошибка при отправке запроса: ' + error.message);
+    }
+}
         
         // Функция загрузки списка друзей
         async function loadFriendsList() {
@@ -3985,3 +4022,4 @@
     </script>
 </body>
 </html>
+
