@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Монетный кликер</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- БИБЛИОТЕКА SUPABASE (ДОБАВЛЕНА) -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         /* ========== ЗАГРУЗОЧНЫЙ ЭКРАН ========== */
         .loading-screen {
@@ -1602,6 +1604,8 @@
             <button id="upgrade-btn" class="upgrade-btn"><i class="fas fa-chart-line"></i> Прокачка</button>
             <button id="shop-btn" class="shop-btn"><i class="fas fa-shopping-cart"></i> Магазин</button>
             <button id="achievements-btn" class="achievements-btn"><i class="fas fa-trophy"></i> Достижения</button>
+            <!-- ДОБАВЛЕНА КНОПКА ДЛЯ СИСТЕМЫ ДРУЗЕЙ -->
+            <button id="friends-btn" class="shop-btn"><i class="fas fa-user-friends"></i> Друзья</button>
             <button id="save-btn" class="save-btn"><i class="fas fa-save"></i> Сохранить</button>
             <button id="reset-btn" class="reset-btn"><i class="fas fa-redo"></i> Сбросить</button>
         </div>
@@ -1637,6 +1641,10 @@
                 </div>
                 <div class="stat-item">
                     <div>Всего офлайн-монет: <span id="offline-coins">0</span></div>
+                </div>
+                <!-- ДОБАВЛЕНА СТАТИСТИКА ПОЛЬЗОВАТЕЛЯ -->
+                <div class="stat-item">
+                    <div>Ваш ID: <span id="user-id-display">Не зарегистрирован</span></div>
                 </div>
             </div>
         </div>
@@ -1674,6 +1682,29 @@
             </div>
             <div style="margin-top: 20px; color: #FFD700; font-size: 1.4rem; font-weight: 800;">
                 <i class="fas fa-coins"></i> Ваш баланс: <span id="shop-balance">0</span> 🪙
+            </div>
+        </div>
+    </div>
+    
+    <!-- МОДАЛЬНОЕ ОКНО СИСТЕМЫ ДРУЗЕЙ (ДОБАВЛЕНО) -->
+    <div class="modal" id="friends-modal">
+        <div class="modal-content">
+            <button class="close-shop" id="close-friends">&times;</button>
+            <h2><i class="fas fa-user-friends"></i> Система друзей</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="friend-search" placeholder="Поиск игроков по имени..." style="width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #9C27B0; font-size: 1rem;">
+            </div>
+            
+            <div id="search-results" style="text-align: left; margin-bottom: 25px;">
+                <!-- Здесь будут появляться результаты поиска -->
+            </div>
+            
+            <div class="shop-items" id="friends-list">
+                <div class="shop-item" style="text-align: center; color: #aaa;">
+                    <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <div>Ищите друзей, чтобы соревноваться!</div>
+                </div>
             </div>
         </div>
     </div>
@@ -2205,6 +2236,7 @@
         const passiveToggle = document.getElementById('passive-toggle');
         const passiveToggleContainer = document.getElementById('passive-toggle-container');
         const autoUpgradeToggle = document.getElementById('auto-upgrade-toggle');
+        const userIdDisplayEl = document.getElementById('user-id-display'); // ДОБАВЛЕН
         
         // Элементы магазина
         const shopModal = document.getElementById('shop-modal');
@@ -2215,6 +2247,13 @@
         const shopBalance = document.getElementById('shop-balance');
         const boostPriceEl = document.getElementById('boost-price');
         const boostPurchasedEl = document.getElementById('boost-purchased');
+        
+        // Элементы системы друзей (ДОБАВЛЕНО)
+        const friendsBtn = document.getElementById('friends-btn');
+        const friendsModal = document.getElementById('friends-modal');
+        const closeFriendsBtn = document.getElementById('close-friends');
+        const friendSearchInput = document.getElementById('friend-search');
+        const searchResultsEl = document.getElementById('search-results');
         
         // Флаг для предотвращения множественных кликов
         let isProcessingClick = false;
@@ -2333,6 +2372,422 @@
             }
         }
         
+        // ========== СИСТЕМА SUPABASE (ВСТАВЛЕНО) ==========
+        // ЗАМЕНИТЕ ЭТИ ДАННЫЕ НА ВАШИ РЕАЛЬНЫЕ КЛЮЧИ ИЗ SUPABASE!
+        const SUPABASE_URL = 'https://ztlyiefkzzyhjrzlqykb.supabase.co'; // Project URL из настроек API
+        const SUPABASE_ANON_KEY = 'sb_secret_YMimRCvrBl15KN-SHTBLrw_SS3jNKcW'; // Anon Key из настроек API
+        
+        let supabase; // Это будет наш клиент для работы с базой
+        let currentUserId = null; // Сюда сохраним ID игрока
+        
+        // Функция инициализации Supabase
+        function initSupabase() {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase подключен!');
+                // Проверяем, есть ли сохраненный ID пользователя
+                const savedUserId = localStorage.getItem('coinClicker_userId');
+                if (savedUserId) {
+                    currentUserId = savedUserId;
+                    loadPlayerProgress(); // Загружаем прогресс, если пользователь известен
+                } else {
+                    // Если пользователь новый, регистрируем его
+                    registerNewPlayer();
+                }
+            } else {
+                console.error('Библиотека Supabase не загрузилась!');
+            }
+        }
+        
+        // Регистрация нового игрока
+        async function registerNewPlayer() {
+            // Создаем уникальный ID для нового игрока (например, на основе времени)
+            currentUserId = 'player_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            localStorage.setItem('coinClicker_userId', currentUserId);
+            
+            // Сохраняем базовый профиль в базу данных
+            const { error } = await supabase
+                .from('user_profiles')
+                .upsert({ 
+                    user_id: currentUserId, 
+                    username: `Игрок_${currentUserId.slice(-4)}`, // Генерируем имя
+                    coins: 0,
+                    total_coins: 0,
+                    multiplier: 1,
+                    stage: 1,
+                    updated_at: new Date().toISOString()
+                });
+            
+            if (error) {
+                console.error('Ошибка регистрации:', error);
+            } else {
+                console.log('Новый игрок зарегистрирован с ID:', currentUserId);
+                updateUserIdDisplay();
+                // После регистрации сразу сохраняем текущее состояние игры
+                savePlayerProgress();
+            }
+        }
+        
+        // Сохранение прогресса игрока
+        async function savePlayerProgress() {
+            if (!supabase || !currentUserId) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .upsert({ 
+                        user_id: currentUserId,
+                        coins: coins,
+                        total_coins: totalCoins,
+                        multiplier: multiplier,
+                        stage: stage,
+                        updated_at: new Date().toISOString()
+                    });
+                
+                if (error) {
+                    console.error('Ошибка сохранения:', error);
+                } else {
+                    console.log('Прогресс сохранен в Supabase!');
+                }
+            } catch (err) {
+                console.error('Исключение при сохранении:', err);
+            }
+        }
+        
+        // Загрузка прогресса игрока
+        async function loadPlayerProgress() {
+            if (!supabase || !currentUserId) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('coins, total_coins, multiplier, stage')
+                    .eq('user_id', currentUserId)
+                    .single();
+                
+                if (error) {
+                    console.error('Ошибка загрузки:', error);
+                    // Если записи нет (пользователь новый), создаем ее
+                    if (error.code === 'PGRST116') {
+                        await registerNewPlayer();
+                    }
+                } else if (data) {
+                    // Восстанавливаем состояние игры из базы
+                    coins = data.coins || 0;
+                    totalCoins = data.total_coins || 0;
+                    multiplier = data.multiplier || 1;
+                    stage = data.stage || 1;
+                    
+                    console.log('Прогресс загружен из Supabase!');
+                    
+                    // Обновляем интерфейс игры
+                    updateUI();
+                    updateUserIdDisplay();
+                    
+                    // Восстанавливаем визуальное состояние в зависимости от этапа
+                    if (stage === 2) {
+                        coinEl.style.display = 'none';
+                        hatEl.style.display = 'block';
+                        gameStageEl.textContent = 'Этап 2: Черная шляпа';
+                    }
+                }
+            } catch (err) {
+                console.error('Исключение при загрузке:', err);
+            }
+        }
+        
+        // Обновление отображения ID пользователя
+        function updateUserIdDisplay() {
+            if (userIdDisplayEl && currentUserId) {
+                userIdDisplayEl.textContent = currentUserId.slice(0, 10) + '...';
+                userIdDisplayEl.title = currentUserId;
+            }
+        }
+        
+        // Модифицируем существующую функцию saveGame для двойного сохранения
+        const originalSaveGame = saveGame;
+        saveGame = function() {
+            // Вызываем оригинальную функцию (сохраняет в localStorage)
+            if (originalSaveGame) originalSaveGame();
+            
+            // Дополнительно сохраняем в Supabase
+            if (currentUserId) {
+                savePlayerProgress();
+            }
+        };
+        
+        // Функция поиска друзей (ДОБАВЛЕНА)
+        async function searchFriends(query) {
+            if (!supabase || query.length < 2) return;
+            
+            searchResultsEl.innerHTML = '<div style="text-align: center; padding: 10px; color: #FFD700;"><i class="fas fa-spinner fa-spin"></i> Ищем...</div>';
+            
+            try {
+                // Ищем пользователей в базе данных
+                const { data, error } = await supabase
+                    .from('user_profiles')
+                    .select('user_id, username, coins, multiplier, stage')
+                    .ilike('username', `%${query}%`)
+                    .neq('user_id', currentUserId) // Исключаем текущего пользователя
+                    .limit(10);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    let html = '<h3 style="color: #FFD700; margin-bottom: 15px;">Результаты поиска:</h3>';
+                    data.forEach(user => {
+                        html += `
+                        <div class="shop-item" style="margin-bottom: 10px; cursor: pointer;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="color: #FFD700;">${user.username || 'Без имени'}</strong><br>
+                                    <small>Монеты: ${formatNumber(user.coins)} | Множитель: x${user.multiplier}</small>
+                                </div>
+                                <button onclick="sendFriendRequest('${user.user_id}', '${user.username || 'Игрок'}')" style="padding: 5px 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                    <i class="fas fa-user-plus"></i> Добавить
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                    });
+                    searchResultsEl.innerHTML = html;
+                } else {
+                    searchResultsEl.innerHTML = '<div style="text-align: center; padding: 20px; color: #aaa;">Пользователи не найдены</div>';
+                }
+            } catch (error) {
+                console.error('Ошибка поиска друзей:', error);
+                searchResultsEl.innerHTML = '<div style="text-align: center; padding: 20px; color: #f44336;">Ошибка при поиске</div>';
+            }
+        }
+        
+        // Функция отправки запроса в друзья (ДОБАВЛЕНА)
+        async function sendFriendRequest(friendId, friendName) {
+            if (!supabase || !currentUserId) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('friend_relations')
+                    .upsert({ 
+                        sender_id: currentUserId,
+                        receiver_id: friendId,
+                        status: 'pending'
+                    });
+                
+                if (error) {
+                    console.error('Ошибка отправки запроса:', error);
+                    alert('Не удалось отправить запрос в друзья.');
+                } else {
+                    console.log('Запрос в друзья отправлен!');
+                    alert(`Запрос на дружбу отправлен игроку ${friendName}!`);
+                }
+            } catch (error) {
+                console.error('Исключение при отправке запроса:', error);
+            }
+        }
+        
+        // Функция загрузки списка друзей (ДОБАВЛЕНА)
+        async function loadFriendsList() {
+            if (!supabase || !currentUserId) return;
+            
+            try {
+                // Получаем список принятых друзей
+                const { data: friendsData, error: friendsError } = await supabase
+                    .from('friend_relations')
+                    .select(`
+                        sender_id,
+                        receiver_id,
+                        user_profiles!friend_relations_sender_id_fkey(username, coins, multiplier)
+                    `)
+                    .or(`and(sender_id.eq.${currentUserId},status.eq.accepted),and(receiver_id.eq.${currentUserId},status.eq.accepted)`);
+                
+                if (friendsError) throw friendsError;
+                
+                // Получаем входящие запросы
+                const { data: incomingData, error: incomingError } = await supabase
+                    .from('friend_relations')
+                    .select(`
+                        sender_id,
+                        user_profiles!friend_relations_sender_id_fkey(username, coins, multiplier)
+                    `)
+                    .eq('receiver_id', currentUserId)
+                    .eq('status', 'pending');
+                
+                if (incomingError) throw incomingError;
+                
+                // Получаем исходящие запросы
+                const { data: outgoingData, error: outgoingError } = await supabase
+                    .from('friend_relations')
+                    .select(`
+                        receiver_id,
+                        user_profiles!friend_relations_receiver_id_fkey(username, coins, multiplier)
+                    `)
+                    .eq('sender_id', currentUserId)
+                    .eq('status', 'pending');
+                
+                if (outgoingError) throw outgoingError;
+                
+                let html = '';
+                
+                // Показываем входящие запросы
+                if (incomingData && incomingData.length > 0) {
+                    html += '<h3 style="color: #FFD700; margin-bottom: 15px;">Входящие запросы:</h3>';
+                    incomingData.forEach(request => {
+                        html += `
+                        <div class="shop-item" style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="color: #FFD700;">${request.user_profiles?.username || 'Игрок'}</strong><br>
+                                    <small>Монеты: ${formatNumber(request.user_profiles?.coins || 0)}</small>
+                                </div>
+                                <div>
+                                    <button onclick="handleFriendRequest('${request.sender_id}', 'accept')" style="padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px;">
+                                        Принять
+                                    </button>
+                                    <button onclick="handleFriendRequest('${request.sender_id}', 'reject')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                        Отклонить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    });
+                }
+                
+                // Показываем друзей
+                if (friendsData && friendsData.length > 0) {
+                    html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Ваши друзья:</h3>';
+                    friendsData.forEach(friend => {
+                        const friendId = friend.sender_id === currentUserId ? friend.receiver_id : friend.sender_id;
+                        const friendProfile = friend.user_profiles;
+                        
+                        html += `
+                        <div class="shop-item" style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="color: #FFD700;">${friendProfile?.username || 'Игрок'}</strong><br>
+                                    <small>Монеты: ${formatNumber(friendProfile?.coins || 0)} | Множитель: x${friendProfile?.multiplier || 1}</small>
+                                </div>
+                                <div>
+                                    <button onclick="removeFriend('${friendId}')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    });
+                }
+                
+                // Показываем исходящие запросы
+                if (outgoingData && outgoingData.length > 0) {
+                    html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Исходящие запросы:</h3>';
+                    outgoingData.forEach(request => {
+                        html += `
+                        <div class="shop-item" style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong style="color: #FFD700;">${request.user_profiles?.username || 'Игрок'}</strong><br>
+                                    <small>Ожидает ответа...</small>
+                                </div>
+                                <div>
+                                    <button onclick="cancelFriendRequest('${request.receiver_id}')" style="padding: 5px 10px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                                        Отменить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    });
+                }
+                
+                if (html === '') {
+                    html = '<div class="shop-item" style="text-align: center; color: #aaa;">У вас пока нет друзей. Используйте поиск выше, чтобы найти других игроков!</div>';
+                }
+                
+                document.getElementById('friends-list').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки списка друзей:', error);
+                document.getElementById('friends-list').innerHTML = '<div class="shop-item" style="text-align: center; color: #f44336;">Ошибка загрузки списка друзей</div>';
+            }
+        }
+        
+        // Обработка запроса в друзья (принять/отклонить) (ДОБАВЛЕНА)
+        async function handleFriendRequest(senderId, action) {
+            if (!supabase || !currentUserId) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('friend_relations')
+                    .update({ status: action })
+                    .eq('sender_id', senderId)
+                    .eq('receiver_id', currentUserId)
+                    .eq('status', 'pending');
+                
+                if (error) {
+                    console.error('Ошибка обработки запроса:', error);
+                    alert('Не удалось обработать запрос.');
+                } else {
+                    console.log(`Запрос ${action === 'accept' ? 'принят' : 'отклонен'}!`);
+                    loadFriendsList(); // Обновляем список
+                    alert(`Запрос в друзья ${action === 'accept' ? 'принят' : 'отклонен'}!`);
+                }
+            } catch (error) {
+                console.error('Исключение при обработке запроса:', error);
+            }
+        }
+        
+        // Удаление друга (ДОБАВЛЕНА)
+        async function removeFriend(friendId) {
+            if (!supabase || !currentUserId) return;
+            
+            if (!confirm('Вы уверены, что хотите удалить этого друга?')) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('friend_relations')
+                    .delete()
+                    .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserId})`)
+                    .eq('status', 'accepted');
+                
+                if (error) {
+                    console.error('Ошибка удаления друга:', error);
+                    alert('Не удалось удалить друга.');
+                } else {
+                    console.log('Друг удален!');
+                    loadFriendsList(); // Обновляем список
+                }
+            } catch (error) {
+                console.error('Исключение при удалении друга:', error);
+            }
+        }
+        
+        // Отмена исходящего запроса (ДОБАВЛЕНА)
+        async function cancelFriendRequest(receiverId) {
+            if (!supabase || !currentUserId) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('friend_relations')
+                    .delete()
+                    .eq('sender_id', currentUserId)
+                    .eq('receiver_id', receiverId)
+                    .eq('status', 'pending');
+                
+                if (error) {
+                    console.error('Ошибка отмены запроса:', error);
+                    alert('Не удалось отменить запрос.');
+                } else {
+                    console.log('Запрос отменен!');
+                    loadFriendsList(); // Обновляем список
+                }
+            } catch (error) {
+                console.error('Исключение при отмене запроса:', error);
+            }
+        }
+        
         // Инициализация игры
         function initGame() {
             // Инициализируем систему звуков
@@ -2340,6 +2795,9 @@
             
             createParticles();
             loadGame();
+            
+            // Инициализируем Supabase
+            initSupabase();
             
             // ИСПРАВЛЕНИЕ: Инициализация визуальных элементов
             coinEl.textContent = '🪙';
@@ -2375,6 +2833,7 @@
             multiplyBtn.addEventListener('click', () => {
                 soundSystem.play('upgrade');
                 upgradeMultiplier();
+                savePlayerProgress(); // Сохраняем после улучшения
             });
             
             upgradeBtn.addEventListener('click', () => {
@@ -2444,6 +2903,28 @@
             totalClicksStatEl.addEventListener('click', () => {
                 soundSystem.play('button');
                 handlePizzaSecretClick();
+            });
+            
+            // Обработчики для системы друзей (ДОБАВЛЕНО)
+            friendsBtn.addEventListener('click', () => {
+                soundSystem.play('button');
+                friendsModal.style.display = 'flex';
+                loadFriendsList(); // Загружаем список при открытии
+            });
+            
+            closeFriendsBtn.addEventListener('click', () => {
+                soundSystem.play('button');
+                friendsModal.style.display = 'none';
+            });
+            
+            // Поиск друзей при вводе текста
+            friendSearchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                if (query.length >= 2) {
+                    searchFriends(query);
+                } else {
+                    searchResultsEl.innerHTML = '';
+                }
             });
             
             // Обновляем текст кнопки улучшения множителя
@@ -2608,6 +3089,9 @@
             
             coins += coinsEarned;
             totalCoins += coinsEarned;
+            
+            // Сохраняем прогресс после клика
+            savePlayerProgress();
             
             // Создаем анимацию числа
             createClickAnimation(e, coinsEarned);
@@ -2805,6 +3289,12 @@
                 totalCoins += earnedCoins;
                 totalOfflineCoins += earnedCoins;
                 
+                // Сохраняем прогресс каждые 10 секунд пассивного дохода
+                if (Date.now() - lastSaveTime > 10000) {
+                    savePlayerProgress();
+                    lastSaveTime = Date.now();
+                }
+                
                 // Воспроизводим звук пассивного дохода (тихо, раз в 5 секунд)
                 if (Math.random() > 0.8) {
                     soundSystem.play('passive');
@@ -2813,11 +3303,6 @@
                 // Обновляем UI каждую секунду
                 updateUI();
                 
-                // Автосохранение каждые 10 секунд пассивного дохода
-                if (Date.now() - lastSaveTime > 10000) {
-                    saveGame();
-                    lastSaveTime = Date.now();
-                }
             }, 1000);
         }
         
@@ -2874,6 +3359,9 @@
                 boostBtn.style.display = 'inline-block';
                 boostBtn.textContent = `Буст (${autoClickTimeLeft}s)`;
                 boostBtn.classList.remove('active');
+                
+                // Сохраняем прогресс после покупки
+                savePlayerProgress();
                 
                 // Воспроизводим звук покупки
                 soundSystem.play('purchase');
@@ -2958,6 +3446,8 @@
                 
                 if (clickCounter % 50 === 0) {
                     updateUI();
+                    // Сохраняем прогресс каждые 50 кликов в бусте
+                    savePlayerProgress();
                 }
                 
                 if (clickCounter >= 200) {
@@ -2977,6 +3467,9 @@
             boostBtn.style.display = 'none';
             boostBtn.disabled = false;
             boostBtn.classList.remove('active');
+            
+            // Сохраняем прогресс после завершения буста
+            savePlayerProgress();
             
             updateUI();
             updateShop();
@@ -3348,6 +3841,26 @@
                 if (passiveToggle) passiveToggle.checked = false;
                 if (autoUpgradeToggle) autoUpgradeToggle.checked = false;
                 document.body.classList.remove('pizza-mode');
+                
+                // Сбрасываем пользователя в Supabase
+                if (currentUserId && supabase) {
+                    // Удаляем профиль из базы данных
+                    supabase
+                        .from('user_profiles')
+                        .delete()
+                        .eq('user_id', currentUserId)
+                        .then(() => {
+                            console.log('Профиль удален из Supabase');
+                        })
+                        .catch(err => {
+                            console.error('Ошибка удаления профиля:', err);
+                        });
+                    
+                    // Удаляем ID из localStorage
+                    localStorage.removeItem('coinClicker_userId');
+                    currentUserId = null;
+                    updateUserIdDisplay();
+                }
                 
                 localStorage.removeItem('coinClickerGame');
                 
