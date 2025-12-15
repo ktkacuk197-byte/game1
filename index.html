@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Монетный кликер</title>
-    <!-- ... остальные стили и скрипты ... -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* ========== ЗАГРУЗОЧНЫЙ ЭКРАН ========== */
         .loading-screen {
@@ -2362,8 +2360,6 @@
             }
             
             updateUI();
-            // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
             updateAchievementsList();
             updateUpgradesList();
             updateShop();
@@ -2620,8 +2616,6 @@ savePlayerProgress(); // Сохраняем в Supabase
             checkCoinAchievements();
             
             updateUI();
-            // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
             
             // Сбрасываем состояние анимации
             setTimeout(() => {
@@ -2791,8 +2785,6 @@ savePlayerProgress(); // Сохраняем в Supabase
                 }
                 
                 updateUI();
-                // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
                 updateUpgradesList();
                 
                 saveGame();
@@ -2820,8 +2812,6 @@ savePlayerProgress(); // Сохраняем в Supabase
                 
                 // Обновляем UI каждую секунду
                 updateUI();
-                // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
                 
                 // Автосохранение каждые 10 секунд пассивного дохода
                 if (Date.now() - lastSaveTime > 10000) {
@@ -2888,8 +2878,7 @@ savePlayerProgress(); // Сохраняем в Supabase
                 // Воспроизводим звук покупки
                 soundSystem.play('purchase');
                 
-                updateUI();// ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
+                updateUI();
                 updateShop();
                 
                 showPurchaseNotification('Супер-клик активирован!');
@@ -2951,11 +2940,7 @@ savePlayerProgress(); // Сохраняем в Supabase
                     }
                     
                     coins += coinsEarned;
-                    // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
                     totalCoins += coinsEarned;
-                    // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
                     
                     // Воспроизводим звук клика (редко, чтобы не перегружать)
                     if (clickCounter % 40 === 0) {
@@ -2973,8 +2958,6 @@ savePlayerProgress(); // Сохраняем в Supabase
                 
                 if (clickCounter % 50 === 0) {
                     updateUI();
-                    // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
                 }
                 
                 if (clickCounter >= 200) {
@@ -2996,8 +2979,6 @@ savePlayerProgress(); // Сохраняем в Supabase
             boostBtn.classList.remove('active');
             
             updateUI();
-            // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
             updateShop();
             
             saveGame();
@@ -3038,8 +3019,6 @@ savePlayerProgress(); // Сохраняем в Supabase
                 }
                 
                 updateUI();
-                // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
                 updateMultiplyButton();
                 saveGame();
             }
@@ -3069,8 +3048,6 @@ savePlayerProgress(); // Сохраняем в Supabase
             
             saveGame();
             updateUI();
-            // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
             updateMultiplyButton();
             updateAchievementsList();
         }
@@ -3375,153 +3352,11 @@ savePlayerProgress(); // Сохраняем в Supabase
                 localStorage.removeItem('coinClickerGame');
                 
                 updateUI();
-                // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
                 updateShop();
                 updateUpgradesList();
                 updateAchievementsList();
             }
-        // ==== НАСТРОЙКА SUPABASE (ВСТАВЬТЕ ЭТО В КОНЕЦ ФАЙЛА) ====
-
-// ЗАМЕНИТЕ ЭТИ ДАННЫЕ НА СВОИ!
-const SUPABASE_URL = 'https://ztlyiefkzzyhjrzlqykb.supabase.co'; // Project URL из настроек API
-const SUPABASE_ANON_KEY = 'sb_secret_YMimRCvrBl15KN-SHTBLrw_SS3jNKcW'; // Anon Key из настроек API
-
-let supabase; // Это будет наш клиент для работы с базой
-let currentUserId = null; // Сюда сохраним ID игрока
-
-// Функция инициализации Supabase
-function initSupabase() {
-    if (window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase подключен!');
-        // Проверяем, есть ли сохраненный ID пользователя
-        const savedUserId = localStorage.getItem('coinClicker_userId');
-        if (savedUserId) {
-            currentUserId = savedUserId;
-            loadPlayerProgress(); // Загружаем прогресс, если пользователь известен
-        } else {
-            // Если пользователь новый, регистрируем его
-            registerNewPlayer();
         }
-    } else {
-        console.error('Библиотека Supabase не загрузилась!');
-    }
-}
-
-// Регистрация нового игрока
-async function registerNewPlayer() {
-    // Создаем уникальный ID для нового игрока (например, на основе времени)
-    currentUserId = 'player_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-    localStorage.setItem('coinClicker_userId', currentUserId);
-    
-    // Сохраняем базовый профиль в базу данных
-    const { error } = await supabase
-        .from('user_profiles')
-        .upsert({ 
-            user_id: currentUserId, 
-            username: `Игрок_${currentUserId.slice(-4)}`, // Генерируем имя
-            coins: 0,
-            total_coins: 0,
-            multiplier: 1,
-            stage: 1,
-            updated_at: new Date().toISOString()
-        });
-    
-    if (error) {
-        console.error('Ошибка регистрации:', error);
-    } else {
-        console.log('Новый игрок зарегистрирован с ID:', currentUserId);
-        // После регистрации сразу сохраняем текущее состояние игры
-        savePlayerProgress();
-    }
-}
-
-// Сохранение прогресса игрока
-async function savePlayerProgress() {
-    if (!supabase || !currentUserId) return;
-    
-    try {
-        const { error } = await supabase
-            .from('user_profiles')
-            .upsert({ 
-                user_id: currentUserId,
-                coins: coins,
-                total_coins: totalCoins,
-                multiplier: multiplier,
-                stage: stage,
-                updated_at: new Date().toISOString()
-            });
-        
-        if (error) {
-            console.error('Ошибка сохранения:', error);
-        } else {
-            console.log('Прогресс сохранен в Supabase!');
-        }
-    } catch (err) {
-        console.error('Исключение при сохранении:', err);
-    }
-}
-
-// Загрузка прогресса игрока
-async function loadPlayerProgress() {
-    if (!supabase || !currentUserId) return;
-    
-    try {
-        const { data, error } = await supabase
-            .from('user_profiles')
-            .select('coins, total_coins, multiplier, stage')
-            .eq('user_id', currentUserId)
-            .single();
-        
-        if (error) {
-            console.error('Ошибка загрузки:', error);
-            // Если записи нет (пользователь новый), создаем ее
-            if (error.code === 'PGRST116') {
-                await registerNewPlayer();
-            }
-        } else if (data) {
-            // Восстанавливаем состояние игры из базы
-            coins = data.coins || 0;
-            totalCoins = data.total_coins || 0;
-            multiplier = data.multiplier || 1;
-            stage = data.stage || 1;
-            
-            console.log('Прогресс загружен из Supabase!');
-            
-            // Обновляем интерфейс игры
-            updateUI();
-            // ... после увеличения монет
-savePlayerProgress(); // Сохраняем в Supabase
-            
-            // Восстанавливаем визуальное состояние в зависимости от этапа
-            if (stage === 2) {
-                coinEl.style.display = 'none';
-                hatEl.style.display = 'block';
-                gameStageEl.textContent = 'Этап 2: Черная шляпа';
-            }
-        }
-    } catch (err) {
-        console.error('Исключение при загрузке:', err);
-    }
-}
-
-// Модифицируем существующую функцию saveGame для двойного сохранения
-const originalSaveGame = saveGame;
-saveGame = function() {
-    // Вызываем оригинальную функцию (сохраняет в localStorage)
-    if (originalSaveGame) originalSaveGame();
-    
-    // Дополнительно сохраняем в Supabase
-    if (currentUserId) {
-        savePlayerProgress();
-    }
-};
-
-// Запускаем инициализацию Supabase после загрузки игры
-setTimeout(initSupabase, 500);}
     </script>
 </body>
 </html>
-
-
