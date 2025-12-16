@@ -3003,105 +3003,143 @@ async function removeFriend(friendId, friendName) {
             sendCoinsModal.style.display = 'flex';
         }
         
-        // Отправка монет другу
-        async function sendCoinsToFriend() {
-            if (!selectedFriendForCoins || !supabase || !currentUserId) return;
+        // Функция отправки монет другу (ДЕБАГ версия)
+async function sendCoinsToFriend() {
+    console.log('=== НАЧАЛО ОТПРАВКИ МОНЕТ ===');
+    console.log('Текущий пользователь:', currentUserId);
+    console.log('Выбранный друг:', selectedFriendForCoins);
+    
+    if (!selectedFriendForCoins || !supabase || !currentUserId) {
+        alert('Система не готова к отправке.');
+        return;
+    }
+
+    const amount = parseInt(coinsAmountInput.value);
+    console.log('Сумма перевода:', amount);
+    
+    if (!amount || amount <= 0) {
+        alert('Введите корректное количество монет!');
+        return;
+    }
+    if (amount > coins) {
+        alert('Недостаточно монет для отправки!');
+        return;
+    }
+    
+    if (!confirm(`Вы уверены, что хотите отправить ${formatNumber(amount)} монет игроку ${selectedFriendForCoins.name}?`)) {
+        return;
+    }
+
+    try {
+        console.log('1. Проверяем подключение к Supabase...');
+        
+        // ПРЯМАЯ ПРОВЕРКА: пытаемся вставить простую тестовую запись
+        console.log('2. Пытаемся создать тестовую транзакцию...');
+        
+        const testTransaction = {
+            sender_id: currentUserId,
+            receiver_id: selectedFriendForCoins.id,
+            amount: amount,
+            status: 'completed',
+            created_at: new Date().toISOString(),
+            test_flag: true // Дополнительное поле для идентификации теста
+        };
+        
+        console.log('Данные для вставки:', testTransaction);
+        
+        const { data: insertedData, error: insertError } = await supabase
+            .from('coin_transfers')
+            .insert([testTransaction])
+            .select();
+        
+        if (insertError) {
+            console.error('❌ ОШИБКА ПРИ СОЗДАНИИ ТРАНЗАКЦИИ:', insertError);
+            console.error('Код ошибки:', insertError.code);
+            console.error('Сообщение:', insertError.message);
+            console.error('Детали:', insertError.details);
             
-            const amount = parseInt(coinsAmountInput.value);
-            
-            if (!amount || amount <= 0) {
-                alert('Пожалуйста, введите корректное количество монет!');
-                return;
-            }
-            
-            if (amount > coins) {
-                alert('У вас недостаточно монет для отправки!');
-                return;
-            }
-            
-            if (!confirm(`Отправить ${formatNumber(amount)} монет игроку ${selectedFriendForCoins.name}?`)) {
-                return;
-            }
-            
-            try {
-                // Сначала списываем монеты у отправителя
-                coins -= amount;
-                totalCoins -= amount; // Уменьшаем общее количество заработанных монет
-                
-                // Сохраняем изменения у отправителя
-                await savePlayerProgress();
-                
-                // Получаем текущие данные друга
-                const { data: friendData, error: friendError } = await supabase
-                    .from('user_profiles')
-                    .select('coins, total_coins')
-                    .eq('user_id', selectedFriendForCoins.id)
-                    .single();
-                
-                if (friendError) {
-                    console.error('Ошибка получения данных друга:', friendError);
-                    // Возвращаем монеты отправителю в случае ошибки
-                    coins += amount;
-                    totalCoins += amount;
-                    await savePlayerProgress();
-                    alert('Ошибка при получении данных друга. Монеты возвращены.');
-                    return;
-                }
-                
-                // Добавляем монеты другу
-                const newFriendCoins = (friendData.coins || 0) + amount;
-                const newFriendTotalCoins = (friendData.total_coins || 0) + amount;
-                
-                const { error: updateError } = await supabase
-                    .from('user_profiles')
-                    .update({ 
-                        coins: newFriendCoins,
-                        total_coins: newFriendTotalCoins,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('user_id', selectedFriendForCoins.id);
-                
-                if (updateError) {
-                    console.error('Ошибка обновления данных друга:', updateError);
-                    // Возвращаем монеты отправителю в случае ошибки
-                    coins += amount;
-                    totalCoins += amount;
-                    await savePlayerProgress();
-                    alert('Ошибка при отправке монет. Монеты возвращены.');
-                    return;
-                }
-                
-                // Записываем транзакцию в историю
-                const { error: transferError } = await supabase
-                    .from('coin_transfers')
-                    .insert({
-                        sender_id: currentUserId,
-                        receiver_id: selectedFriendForCoins.id,
-                        amount: amount,
-                        created_at: new Date().toISOString()
-                    });
-                
-                if (transferError) {
-                    console.error('Ошибка записи транзакции:', transferError);
-                }
-                
-                // Обновляем интерфейс
-                updateUI();
-                
-                // Закрываем модальное окно
-                sendCoinsModal.style.display = 'none';
-                
-                // Показываем уведомление об успехе
-                showPurchaseNotification(`Вы отправили ${formatNumber(amount)} монет игроку ${selectedFriendForCoins.name}!`);
-                
-                // Обновляем список друзей
-                loadFriendsList();
-                
-            } catch (error) {
-                console.error('Ошибка при отправке монет:', error);
-                alert('Произошла ошибка при отправке монет.');
-            }
+            // Показываем подробную информацию об ошибке
+            alert('Ошибка записи транзакции: ' + insertError.message + '\nКод: ' + insertError.code);
+            return;
         }
+        
+        console.log('✅ Транзакция успешно создана!', insertedData);
+        
+        // Теперь обновляем баланс друга
+        console.log('3. Обновляем баланс друга...');
+        const { data: friendData, error: friendError } = await supabase
+            .from('user_profiles')
+            .select('coins, total_coins')
+            .eq('user_id', selectedFriendForCoins.id)
+            .single();
+        
+        if (friendError) {
+            console.error('Ошибка получения данных друга:', friendError);
+            throw new Error('Не удалось получить данные друга: ' + friendError.message);
+        }
+        
+        console.log('Текущий баланс друга:', friendData);
+        
+        const newFriendCoins = (friendData.coins || 0) + amount;
+        const newFriendTotalCoins = (friendData.total_coins || 0) + amount;
+        
+        const { error: updateFriendError } = await supabase
+            .from('user_profiles')
+            .update({
+                coins: newFriendCoins,
+                total_coins: newFriendTotalCoins,
+                updated_at: new Date().toISOString()
+            })
+            .eq('user_id', selectedFriendForCoins.id);
+        
+        if (updateFriendError) {
+            console.error('Ошибка зачисления другу:', updateFriendError);
+            throw new Error('Не удалось зачислить монеты другу: ' + updateFriendError.message);
+        }
+        
+        console.log('✅ Баланс друга обновлён');
+        
+        // Обновляем наш баланс
+        console.log('4. Обновляем наш баланс...');
+        coins -= amount;
+        totalCoins -= amount;
+        
+        const { error: updateSenderError } = await supabase
+            .from('user_profiles')
+            .update({
+                coins: coins,
+                total_coins: totalCoins,
+                updated_at: new Date().toISOString()
+            })
+            .eq('user_id', currentUserId);
+        
+        if (updateSenderError) {
+            console.error('Ошибка списания у нас:', updateSenderError);
+            throw new Error('Не удалось списать монеты: ' + updateSenderError.message);
+        }
+        
+        console.log('✅ Наш баланс обновлён');
+        
+        // Обновляем интерфейс
+        updateUI();
+        saveGame();
+        
+        // Закрываем окно и показываем уведомление
+        sendCoinsModal.style.display = 'none';
+        showPurchaseNotification(`Вы отправили ${formatNumber(amount)} монет игроку ${selectedFriendForCoins.name}!`, 'coins');
+        
+        // Обновляем список друзей
+        setTimeout(() => {
+            loadFriendsList();
+        }, 1000);
+        
+        console.log('=== УСПЕШНО ЗАВЕРШЕНО ===');
+        
+    } catch (error) {
+        console.error('❌ КРИТИЧЕСКАЯ ОШИБКА:', error);
+        alert('Произошла ошибка: ' + error.message);
+    }
+}
         
         // Инициализация игры
         function initGame() {
@@ -4167,4 +4205,5 @@ function showPurchaseNotification(message, type = 'purchase') {
     </script>
 </body>
 </html>
+
 
