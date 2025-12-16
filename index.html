@@ -6,7 +6,7 @@
     <title>Монетный кликер</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- БИБЛИОТЕКА SUPABASE (ДОБАВЛЕНА) -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
     <style>
         /* ========== ЗАГРУЗОЧНЫЙ ЭКРАН ========== */
         .loading-screen {
@@ -1829,9 +1829,21 @@
         
         // Запускаем загрузку при открытии страницы
         window.addEventListener('DOMContentLoaded', () => {
-            startLoading();
-            setTimeout(initGame, 10500); // Запускаем игру после загрузки
-        });
+    startLoading();
+    
+    // Даем время на загрузку всех ресурсов
+    setTimeout(() => {
+        initGame();
+    }, 500); // Уменьшено с 10500 мс
+});
+
+// В функции startLoading() обновите тайминги:
+function startLoading() {
+    const totalLoadTime = 3000; // Уменьшено до 3 секунд
+    const intervalTime = 50;
+    
+    // ... остальной код ...
+}
         
         // ========== ОПТИМИЗИРОВАННАЯ СИСТЕМА ЗВУКОВ ==========
         class SoundSystem {
@@ -2332,11 +2344,60 @@
         let supabase;
         let currentUserId = null;
         
-        // Инициализация Supabase
         async function initSupabase() {
-            try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('Supabase подключен!');
+    try {
+        console.log('Попытка подключения к Supabase...');
+        
+        // Инициализация Supabase с обработкой ошибок
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false
+            }
+        });
+        
+        console.log('Supabase подключен!');
+        
+        // Тестовый запрос для проверки подключения
+        const { data, error } = await supabase
+            .from('user_profiles')
+            .select('count')
+            .limit(1);
+        
+        if (error) {
+            console.warn('Предупреждение при тесте подключения:', error);
+        }
+        
+        // Проверяем сохраненный ID
+        const savedUserId = localStorage.getItem('coinClicker_userId');
+        if (savedUserId) {
+            currentUserId = savedUserId;
+            console.log('Найден сохраненный ID пользователя:', currentUserId);
+            await loadPlayerProgress();
+        } else {
+            console.log('Создание нового пользователя...');
+            await registerNewPlayer();
+        }
+        
+    } catch (error) {
+        console.error('Критическая ошибка инициализации Supabase:', error);
+        
+        // Продолжаем игру даже если Supabase не работает
+        alert('Ошибка подключения к серверу. Игра будет работать в офлайн-режиме.');
+        
+        // Загружаем локальные сохранения
+        const savedUserId = localStorage.getItem('coinClicker_userId');
+        if (savedUserId) {
+            currentUserId = savedUserId;
+            loadGame(); // Используем локальное сохранение
+        }
+        
+        // Показываем игру даже при ошибке
+        updateUI();
+        updateUserIdDisplay();
+    }
+}
                 
                 // Создаем таблицы если их нет
                 await createTablesIfNotExist();
@@ -2440,41 +2501,57 @@
         
         // Загрузка прогресса игрока
         async function loadPlayerProgress() {
-            if (!supabase || !currentUserId) return;
+    if (!supabase || !currentUserId) {
+        console.log('Supabase не инициализирован, загружаем локально');
+        loadGame();
+        return;
+    }
+    
+    try {
+        console.log('Загрузка прогресса для пользователя:', currentUserId);
+        
+        const { data, error } = await supabase
+            .from('user_profiles')
+            .select('coins, total_coins, multiplier, stage, username')
+            .eq('user_id', currentUserId)
+            .single();
+        
+        if (error) {
+            console.warn('Ошибка загрузки из Supabase:', error);
             
-            try {
-                const { data, error } = await supabase
-                    .from('user_profiles')
-                    .select('coins, total_coins, multiplier, stage')
-                    .eq('user_id', currentUserId)
-                    .single();
-                
-                if (error) {
-                    console.error('Ошибка загрузки:', error);
-                    if (error.code === 'PGRST116') {
-                        await registerNewPlayer();
-                    }
-                } else if (data) {
-                    coins = data.coins || 0;
-                    totalCoins = data.total_coins || 0;
-                    multiplier = data.multiplier || 1;
-                    stage = data.stage || 1;
-                    
-                    console.log('Прогресс загружен из Supabase!');
-                    
-                    updateUI();
-                    updateUserIdDisplay();
-                    
-                    if (stage === 2) {
-                        coinEl.style.display = 'none';
-                        hatEl.style.display = 'block';
-                        gameStageEl.textContent = 'Этап 2: Черная шляпа';
-                    }
-                }
-            } catch (error) {
-                console.error('Исключение при загрузке:', error);
+            // Если ошибка 404 (пользователь не найден), регистрируем заново
+            if (error.code === 'PGRST116') {
+                console.log('Пользователь не найден, регистрируем заново');
+                await registerNewPlayer();
+            } else {
+                // Для других ошибок загружаем локальные данные
+                loadGame();
             }
+        } else if (data) {
+            console.log('Прогресс загружен из Supabase:', data);
+            
+            coins = data.coins || 0;
+            totalCoins = data.total_coins || 0;
+            multiplier = data.multiplier || 1;
+            stage = data.stage || 1;
+            
+            updateUI();
+            updateUserIdDisplay();
+            
+            if (stage === 2) {
+                coinEl.style.display = 'none';
+                hatEl.style.display = 'block';
+                gameStageEl.textContent = 'Этап 2: Черная шляпа';
+            }
+            
+            // Сохраняем локально на всякий случай
+            saveGame();
         }
+    } catch (error) {
+        console.error('Исключение при загрузке:', error);
+        loadGame(); // Загружаем локально при ошибке
+    }
+}
         
         // Обновление отображения ID пользователя
         function updateUserIdDisplay() {
@@ -4167,4 +4244,5 @@ function showPurchaseNotification(message, type = 'purchase') {
     </script>
 </body>
 </html>
+
 
