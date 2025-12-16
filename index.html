@@ -2369,7 +2369,7 @@
                 
                 // Проверяем и создаем таблицу coin_transfers если её нет
                 const { error: transfersError } = await supabase
-                    .from('coin_transfers')
+                    .from('coin_transfers_simple')
                     .select('*')
                     .limit(1);
                 
@@ -3048,7 +3048,7 @@ async function sendCoinsToFriend() {
         console.log('Данные для вставки:', testTransaction);
         
         const { data: insertedData, error: insertError } = await supabase
-            .from('coin_transfers')
+            .from('coin_transfers_simple')
             .insert([testTransaction])
             .select();
         
@@ -4205,5 +4205,6 @@ function showPurchaseNotification(message, type = 'purchase') {
     </script>
 </body>
 </html>
+
 
 
