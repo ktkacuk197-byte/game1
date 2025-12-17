@@ -541,6 +541,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         
+        /* ========== ИСПРАВЛЕНИЕ: СТИЛИ ДЛЯ МОНЕТЫ, ШЛЯПЫ И ПИЦЦЫ ========== */
         .coin, .hat, .pizza {
             width: 100%;
             height: 100%;
@@ -680,7 +681,7 @@
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transition: left 0.7s;
             z-index: -1;
-            }
+        }
         
         button:hover::before {
             left: 100%;
@@ -764,6 +765,7 @@
             box-shadow: 0 12px 0 rgba(0, 105, 92, 0.9), 0 18px 30px rgba(0, 0, 0, 0.4);
         }
         
+        /* Кнопка буста - улучшенная */
         .boost-btn {
             background: linear-gradient(145deg, rgba(255, 152, 0, 0.95), rgba(239, 108, 0, 0.95));
             color: white;
@@ -1271,7 +1273,7 @@
             margin-bottom: 25px;
             font-size: 2.2rem;
             text-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
-            }
+        }
         
         .modal p {
             font-size: 1.2rem;
@@ -1697,7 +1699,7 @@
     <div class="secret-notification" id="secret-notification">
         <i class="fas fa-pizza-slice"></i>
         <div style="font-size: 1.5rem; font-weight: 900; margin-bottom: 8px;">Секретная пицца разблокирована! 🍕</div>
-        <div style="font-size: 1.1rem;">Вы активировали скрытный скин "Пепперони"!</div>
+        <div style="font-size: 1.1rem;">Вы активировали скрытый скин "Пепперони"!</div>
     </div>
 
     <script>
@@ -1718,7 +1720,7 @@
         ];
         
         let loadProgress = 0;
-        const totalLoadTime = 3000; // 3 секунды
+        const totalLoadTime = 10000; // 10 секунд
         const intervalTime = 50; // обновляем каждые 50мс
         
         function startLoading() {
@@ -1776,7 +1778,7 @@
         // Запускаем загрузку при открытии страницы
         window.addEventListener('DOMContentLoaded', () => {
             startLoading();
-            setTimeout(initGame, 3500); // Запускаем игру после загрузки
+            setTimeout(initGame, 10500); // Запускаем игру после загрузки
         });
         
         // ========== ОПТИМИЗИРОВАННАЯ СИСТЕМА ЗВУКОВ ==========
@@ -1792,23 +1794,40 @@
             }
             
             initSounds() {
+                // Предзагружаем звуки
                 this.preloadSounds();
             }
             
             preloadSounds() {
+                // Создаем звуковые буферы заранее
                 this.createSoundBuffers();
             }
             
             createSoundBuffers() {
+                // Создаем простые звуки с помощью Web Audio API
+                // Это более эффективно чем создавать их каждый раз
                 try {
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     
+                    // Звук монеты (приятный металлический звон)
                     this.sounds.coinClick = this.createCoinClickSound(audioContext);
+                    
+                    // Звук кнопок (мягкий клик)
                     this.sounds.button = this.createButtonSound(audioContext);
+                    
+                    // Звук улучшения (восходящий тон)
                     this.sounds.upgrade = this.createUpgradeSound(audioContext);
+                    
+                    // Звук покупки (кассовый звук)
                     this.sounds.purchase = this.createPurchaseSound(audioContext);
+                    
+                    // Звук достижения (триумф)
                     this.sounds.achievement = this.createAchievementSound(audioContext);
+                    
+                    // Звук буста (электрический)
                     this.sounds.boost = this.createBoostSound(audioContext);
+                    
+                    // Звук пассивного дохода (тихие монетки)
                     this.sounds.passive = this.createPassiveSound(audioContext);
                     
                 } catch (e) {
@@ -1819,6 +1838,7 @@
             
             createCoinClickSound(audioContext) {
                 return () => {
+                    // Ограничиваем частоту воспроизведения звука монеты
                     const now = Date.now();
                     if (now - this.lastCoinSoundTime < this.coinSoundDelay) {
                         return;
@@ -1832,15 +1852,18 @@
                         oscillator.connect(gainNode);
                         gainNode.connect(audioContext.destination);
                         
+                        // Приятный высокий звук монеты
                         oscillator.frequency.value = 1200;
                         oscillator.type = 'sine';
                         
+                        // Быстро затухающий звук
                         gainNode.gain.setValueAtTime(0.08 * this.volume, audioContext.currentTime);
                         gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
                         
                         oscillator.start();
                         oscillator.stop(audioContext.currentTime + 0.15);
                     } catch (e) {
+                        // Простой fallback звук
                         this.playFallbackCoinSound();
                     }
                 };
@@ -1863,7 +1886,9 @@
                         
                         oscillator.start();
                         oscillator.stop(audioContext.currentTime + 0.1);
-                    } catch (e) {}
+                    } catch (e) {
+                        // Fallback
+                    }
                 };
             }
             
@@ -1885,13 +1910,16 @@
                         
                         oscillator.start();
                         oscillator.stop(audioContext.currentTime + 0.3);
-                    } catch (e) {}
+                    } catch (e) {
+                        // Fallback
+                    }
                 };
             }
             
             createPurchaseSound(audioContext) {
                 return () => {
                     try {
+                        // Два коротких звука для кассового аппарата
                         for (let i = 0; i < 2; i++) {
                             setTimeout(() => {
                                 const oscillator = audioContext.createOscillator();
@@ -1910,14 +1938,17 @@
                                 oscillator.stop(audioContext.currentTime + 0.1);
                             }, i * 50);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        // Fallback
+                    }
                 };
             }
             
             createAchievementSound(audioContext) {
                 return () => {
                     try {
-                        const notes = [523.25, 659.25, 783.99];
+                        // Несколько нот для триумфального звука
+                        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
                         
                         notes.forEach((freq, i) => {
                             setTimeout(() => {
@@ -1937,7 +1968,9 @@
                                 oscillator.stop(audioContext.currentTime + 0.2);
                             }, i * 100);
                         });
-                    } catch (e) {}
+                    } catch (e) {
+                        // Fallback
+                    }
                 };
             }
             
@@ -1959,13 +1992,16 @@
                         
                         oscillator.start();
                         oscillator.stop(audioContext.currentTime + 0.4);
-                    } catch (e) {}
+                    } catch (e) {
+                        // Fallback
+                    }
                 };
             }
             
             createPassiveSound(audioContext) {
                 return () => {
                     try {
+                        // Тихий звук падающих монет (воспроизводится редко)
                         const oscillator = audioContext.createOscillator();
                         const gainNode = audioContext.createGain();
                         
@@ -1980,14 +2016,23 @@
                         
                         oscillator.start();
                         oscillator.stop(audioContext.currentTime + 0.3);
-                    } catch (e) {}
+                    } catch (e) {
+                        // Fallback
+                    }
                 };
             }
             
             playFallbackCoinSound() {
+                // Простой fallback для старых браузеров
                 if (this.muted || this.volume === 0) return;
                 
                 try {
+                    // Используем базовый Audio объект
+                    const audio = new Audio();
+                    audio.volume = this.volume * 0.3;
+                    
+                    // Создаем простой звуковой сигнал через data URL
+                    // Это короткий beep звук
                     const context = new (window.AudioContext || window.webkitAudioContext)();
                     const oscillator = context.createOscillator();
                     const gainNode = context.createGain();
@@ -2003,17 +2048,21 @@
                     
                     oscillator.start();
                     oscillator.stop(context.currentTime + 0.1);
-                } catch (e) {}
+                } catch (e) {
+                    // Если ничего не работает, просто пропускаем звук
+                }
             }
             
             setupVolumeControls() {
                 const volumeSlider = document.getElementById('volume-slider');
                 const soundIcon = document.getElementById('sound-icon');
                 
+                // Устанавливаем начальное значение
                 if (volumeSlider) {
                     volumeSlider.value = this.volume;
                 }
                 
+                // Обработчик изменения громкости
                 if (volumeSlider) {
                     volumeSlider.addEventListener('input', (e) => {
                         this.volume = parseFloat(e.target.value);
@@ -2021,6 +2070,7 @@
                     });
                 }
                 
+                // Обработчик клика по иконке звука
                 if (soundIcon) {
                     soundIcon.addEventListener('click', () => {
                         this.muted = !this.muted;
@@ -2050,7 +2100,9 @@
                 if (this.sounds[soundName]) {
                     try {
                         this.sounds[soundName]();
-                    } catch (e) {}
+                    } catch (e) {
+                        // Игнорируем ошибки воспроизведения
+                    }
                 }
             }
             
@@ -2076,7 +2128,7 @@
         let clicks = 0;
         let multiplier = 1;
         let nextMultiplierCost = 50;
-        let stage = 1;
+        let stage = 1; // 1 - золотая монета, 2 - черная шляпа, 3 - пицца (секретный режим)
         let maxMultiplierStage1 = 350;
         let achievements = {
             coin50: false,
@@ -2104,16 +2156,16 @@
         let pizzaMode = false;
         
         // Переменные для пассивного дохода
-        let passiveIncomeLevel = 0;
-        let passiveIncomeRate = 0;
-        let passiveIncomeCost = 500;
-        let passiveIncomeActive = false;
+        let passiveIncomeLevel = 0; // Уровень прокачки (0 = не куплено)
+        let passiveIncomeRate = 0; // Текущий доход в секунду
+        let passiveIncomeCost = 500; // Стоимость следующего улучшения
+        let passiveIncomeActive = false; // Включен ли пассивный доход
         let totalOfflineCoins = 0;
         let lastSaveTime = Date.now();
         let passiveIncomeInterval = null;
         
         // Переменные для авто-улучшения
-        let autoUpgradeEnabled = false;
+        let autoUpgradeEnabled = false; // Автоматическое улучшение множителя
         
         // Система звуков
         let soundSystem;
@@ -2167,11 +2219,11 @@
         // Флаг для предотвращения множественных кликов
         let isProcessingClick = false;
         let lastClickTime = 0;
-        const MIN_CLICK_INTERVAL = 50;
+        const MIN_CLICK_INTERVAL = 50; // Минимальное время между кликами (мс)
         
         // Функция для создания частиц
         function createParticles() {
-            const particlesCount = 30;
+            const particlesCount = 30; // Уменьшили количество для оптимизации
             
             for (let i = 0; i < particlesCount; i++) {
                 const particle = document.createElement('div');
@@ -2252,24 +2304,57 @@
             }
         }
         
+        // Функция для подробного форматирования
+        function formatNumberDetailed(num) {
+            if (num >= 1000000) {
+                const millions = Math.floor(num / 1000000);
+                const thousands = Math.floor((num % 1000000) / 1000);
+                const remainder = num % 1000;
+                
+                let result = millions + 'M';
+                if (thousands > 0) {
+                    result += ' ' + thousands + 'k';
+                }
+                if (remainder > 0 && thousands === 0) {
+                    result += ' ' + remainder;
+                }
+                return result;
+            } else if (num >= 1000) {
+                const thousands = Math.floor(num / 1000);
+                const remainder = num % 1000;
+                
+                let result = thousands + 'k';
+                if (remainder > 0) {
+                    result += ' ' + remainder;
+                }
+                return result;
+            } else {
+                return num.toString();
+            }
+        }
+        
         // Инициализация игры
         function initGame() {
+            // Инициализируем систему звуков
             soundSystem = new SoundSystem();
             
             createParticles();
             loadGame();
             
+            // ИСПРАВЛЕНИЕ: Инициализация визуальных элементов
             coinEl.textContent = '🪙';
             coinEl.style.display = 'block';
             hatEl.style.display = 'none';
             pizzaEl.style.display = 'none';
             
+            // Запускаем пассивный доход если он активен
             if (passiveIncomeActive && passiveIncomeLevel > 0) {
                 startPassiveIncome();
                 passiveToggle.checked = true;
                 passiveToggleContainer.style.display = 'flex';
             }
             
+            // Показываем переключатель пассивного дохода если он куплен
             if (passiveIncomeLevel > 0) {
                 passiveToggleContainer.style.display = 'flex';
             }
@@ -2279,10 +2364,12 @@
             updateUpgradesList();
             updateShop();
             
+            // Если пицца разблокирована, активируем режим пиццы
             if (pizzaUnlocked) {
                 activatePizzaMode();
             }
             
+            // Обработчики событий
             setupClickHandlers();
             
             multiplyBtn.addEventListener('click', () => {
@@ -2330,11 +2417,13 @@
                 activateBoost();
             });
             
+            // Обработчик покупки авто-клика
             autoclickItem.addEventListener('click', () => {
                 soundSystem.play('purchase');
                 buyAutoClick();
             });
             
+            // Обработчик переключателя пассивного дохода
             passiveToggle.addEventListener('change', function() {
                 passiveIncomeActive = this.checked;
                 if (passiveIncomeActive && passiveIncomeLevel > 0) {
@@ -2345,23 +2434,27 @@
                 saveGame();
             });
             
+            // Обработчик переключателя авто-улучшения
             autoUpgradeToggle.addEventListener('change', function() {
                 autoUpgradeEnabled = this.checked;
                 saveGame();
             });
             
+            // Обработчик для секретной пиццы (10 кликов по статистике)
             totalClicksStatEl.addEventListener('click', () => {
                 soundSystem.play('button');
                 handlePizzaSecretClick();
             });
             
+            // Обновляем текст кнопки улучшения множителя
             updateMultiplyButton();
             
+            // Восстанавливаем активный буст при загрузке
             if (autoClickActive && autoClickTimeLeft > 0) {
                 startAutoClick();
             }
             
-            // Эффект пульсации
+            // Эффект пульсации для кликабельной области
             setInterval(() => {
                 if (!isProcessingClick && !autoClickActive) {
                     clickableContainerEl.style.transform = 'scale(1.05)';
@@ -2373,10 +2466,13 @@
                 }
             }, 2000);
             
+            // Обновляем время последнего сохранения
             lastSaveTime = Date.now();
             
+            // Автосохранение каждые 30 секунд
             setInterval(saveGame, 30000);
             
+            // Проверяем авто-улучшение каждую секунду
             setInterval(() => {
                 if (autoUpgradeEnabled && coins >= nextMultiplierCost) {
                     upgradeMultiplier();
@@ -2388,6 +2484,7 @@
         function handlePizzaSecretClick() {
             pizzaClickCount++;
             
+            // Если нажали 10 раз, активируем пиццу
             if (pizzaClickCount >= 10 && !pizzaUnlocked) {
                 pizzaUnlocked = true;
                 achievements.pizzaSecret = true;
@@ -2396,6 +2493,7 @@
                 soundSystem.play('achievement');
                 saveGame();
                 
+                // Сбрасываем счетчик
                 pizzaClickCount = 0;
             }
         }
@@ -2405,6 +2503,7 @@
             pizzaMode = true;
             document.body.classList.add('pizza-mode');
             
+            // Обновляем отображение
             if (stage === 1) {
                 coinEl.style.display = 'none';
                 hatEl.style.display = 'none';
@@ -2421,6 +2520,7 @@
                 gameStageEl.style.boxShadow = '0 0 15px rgba(156, 39, 176, 0.6)';
             }
             
+            // Обновляем достижения
             updateAchievementsList();
         }
         
@@ -2479,8 +2579,10 @@
             isProcessingClick = true;
             lastClickTime = now;
             
+            // Воспроизводим звук клика
             soundSystem.play('coinClick');
             
+            // Визуальная обратная связь
             if (pizzaMode) {
                 pizzaEl.classList.add('active');
             } else if (stage === 1) {
@@ -2489,6 +2591,7 @@
                 hatEl.classList.add('active');
             }
             
+            // Игровая логика
             clicks++;
             let coinsEarned;
             
@@ -2498,19 +2601,23 @@
                 coinsEarned = multiplier * 5;
             }
             
+            // Бонус за пиццу
             if (pizzaMode) {
-                coinsEarned = Math.floor(coinsEarned * 1.2);
+                coinsEarned = Math.floor(coinsEarned * 1.2); // +20% бонус за пиццу
             }
             
             coins += coinsEarned;
             totalCoins += coinsEarned;
             
+            // Создаем анимацию числа
             createClickAnimation(e, coinsEarned);
             
+            // Проверка достижений
             checkCoinAchievements();
             
             updateUI();
             
+            // Сбрасываем состояние анимации
             setTimeout(() => {
                 if (pizzaMode) {
                     pizzaEl.classList.remove('active');
@@ -2617,7 +2724,7 @@
                 });
                 
                 const nextLevel = upgrade.level + 1;
-                const nextCost = Math.floor(passiveIncomeCost);
+                const nextCost = Math.floor(passiveIncomeCost); // ИСПРАВЛЕНИЕ: используем правильную переменную стоимости
                 const canAfford = coins >= nextCost && upgrade.level < upgrade.maxLevel;
                 
                 upgradeItem.innerHTML = `
@@ -2645,10 +2752,11 @@
         
         // Расчет дохода пассивного дохода по уровню
         function calculatePassiveIncomeRate(level) {
+            // Базовая формула: 500 * (уровень^1.2)
             return Math.floor(500 * Math.pow(level, 1.2));
         }
         
-        // Покупка улучшения пассивного дохода
+        // ИСПРАВЛЕНИЕ: Покупка улучшения пассивного дохода
         function buyPassiveIncomeUpgrade() {
             const nextCost = passiveIncomeCost;
             
@@ -2658,16 +2766,20 @@
                 passiveIncomeRate = calculatePassiveIncomeRate(passiveIncomeLevel);
                 passiveIncomeCost = Math.floor(passiveIncomeCost * 1.5);
                 
+                // Показываем переключатель после первой покупки
                 if (passiveIncomeLevel === 1) {
                     passiveToggleContainer.style.display = 'flex';
                     achievements.passiveIncome = true;
                     updateAchievementsList();
                 }
                 
+                // Воспроизводим звук покупки
                 soundSystem.play('purchase');
                 
+                // Показываем уведомление
                 showPurchaseNotification(`Пассивный доход улучшен до ур.${passiveIncomeLevel}!`);
                 
+                // Если пассивный доход был активен, перезапускаем его
                 if (passiveIncomeActive) {
                     startPassiveIncome();
                 }
@@ -2681,22 +2793,31 @@
         
         // Запуск пассивного дохода
         function startPassiveIncome() {
+            // Останавливаем предыдущий интервал если есть
             if (passiveIncomeInterval) {
                 clearInterval(passiveIncomeInterval);
             }
             
+            // Запускаем новый интервал
             passiveIncomeInterval = setInterval(() => {
                 const earnedCoins = passiveIncomeRate;
                 coins += earnedCoins;
                 totalCoins += earnedCoins;
                 totalOfflineCoins += earnedCoins;
                 
+                // Воспроизводим звук пассивного дохода (тихо, раз в 5 секунд)
                 if (Math.random() > 0.8) {
                     soundSystem.play('passive');
                 }
                 
+                // Обновляем UI каждую секунду
                 updateUI();
                 
+                // Автосохранение каждые 10 секунд пассивного дохода
+                if (Date.now() - lastSaveTime > 10000) {
+                    saveGame();
+                    lastSaveTime = Date.now();
+                }
             }, 1000);
         }
         
@@ -2722,9 +2843,10 @@
         // Обновление магазина
         function updateShop() {
             shopBalance.textContent = formatNumber(coins);
-            boostPriceEl.textContent = formatNumber(currentBoostCost) + ' 🪙';
+            boostPriceEl.textContent = formatNumberDetailed(currentBoostCost) + ' 🪙';
             boostPurchasedEl.textContent = boostPurchasedCount;
             
+            // Проверяем доступность товаров
             if (coins >= currentBoostCost && !autoClickActive) {
                 autoclickItem.classList.remove('disabled');
             } else {
@@ -2753,6 +2875,9 @@
                 boostBtn.textContent = `Буст (${autoClickTimeLeft}s)`;
                 boostBtn.classList.remove('active');
                 
+                // Воспроизводим звук покупки
+                soundSystem.play('purchase');
+                
                 updateUI();
                 updateShop();
                 
@@ -2770,6 +2895,7 @@
                 boostBtn.classList.add('active');
                 boostBtn.textContent = 'Буст активен!';
                 
+                // Воспроизводим звук буста
                 soundSystem.play('boost');
             }
         }
@@ -2816,6 +2942,7 @@
                     coins += coinsEarned;
                     totalCoins += coinsEarned;
                     
+                    // Воспроизводим звук клика (редко, чтобы не перегружать)
                     if (clickCounter % 40 === 0) {
                         soundSystem.play('coinClick');
                     }
@@ -2904,6 +3031,7 @@
             nextMultiplierCost = 5000;
             achievements.blackHat = true;
             
+            // Обновляем отображение
             coinEl.style.display = 'none';
             hatEl.style.display = 'block';
             
@@ -2915,6 +3043,7 @@
             
             secretModal.style.display = 'flex';
             
+            // Воспроизводим звук достижения
             soundSystem.play('achievement');
             
             saveGame();
@@ -2994,7 +3123,7 @@
                 { id: 'multiplier500', title: 'Множитель x500', description: 'Достигните множителя x500', condition: multiplier >= 500, unlocked: achievements.multiplier500, icon: 'fas fa-chart-line' },
                 { id: 'boostMaster', title: 'Мастер бустов', description: 'Купите 5 бустов', condition: boostPurchasedCount >= 5, unlocked: boostPurchasedCount >= 5, icon: 'fas fa-bolt' },
                 { id: 'richPlayer', title: 'Богатый игрок', description: 'Заработайте 1 миллион монет', condition: totalCoins >= 1000000, unlocked: totalCoins >= 1000000, icon: 'fas fa-crown' },
-                { id: 'pizzaSecret', title: 'Секретная пицца', description: 'Разблокируйте скрытный скин пиццы', condition: pizzaUnlocked, unlocked: achievements.pizzaSecret, icon: 'fas fa-pizza-slice' },
+                { id: 'pizzaSecret', title: 'Секретная пицца', description: 'Разблокируйте скрытый скин пиццы', condition: pizzaUnlocked, unlocked: achievements.pizzaSecret, icon: 'fas fa-pizza-slice' },
                 { id: 'passiveIncome', title: 'Пассивный доход', description: 'Купите пассивный доход', condition: passiveIncomeLevel >= 1, unlocked: achievements.passiveIncome, icon: 'fas fa-piggy-bank' },
                 { id: 'offlineKing', title: 'Король офлайна', description: 'Заработайте 100k монет офлайн', condition: totalOfflineCoins >= 100000, unlocked: totalOfflineCoins >= 100000, icon: 'fas fa-bed' },
                 { id: 'maxPassive', title: 'Максимальный пассив', description: 'Максимально улучшите пассивный доход', condition: passiveIncomeLevel >= 20, unlocked: passiveIncomeLevel >= 20, icon: 'fas fa-chart-line' }
@@ -3104,6 +3233,7 @@
                             totalCoins += offlineCoinsEarned;
                             totalOfflineCoins += offlineCoinsEarned;
                             
+                            // Автоматически улучшаем множители за офлайн время
                             let remainingCoins = offlineCoinsEarned;
                             while (remainingCoins >= nextMultiplierCost) {
                                 remainingCoins -= nextMultiplierCost;
@@ -3112,6 +3242,7 @@
                                     multiplier++;
                                     
                                     if (multiplier >= maxMultiplierStage1) {
+                                        // Если достигли максимума в офлайне, активируем секретный этап
                                         stage = 2;
                                         multiplier = 500;
                                         nextMultiplierCost = 5000;
