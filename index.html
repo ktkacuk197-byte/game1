@@ -1772,8 +1772,8 @@
         ];
         
         let loadProgress = 0;
-        const totalLoadTime = 10000; // 10 секунд
-        const intervalTime = 50; // обновляем каждые 50мс
+        const totalLoadTime = 2000; // Уменьшено с 10000 до 2000 мс (2 секунды)
+        const intervalTime = 30; // обновляем каждые 30мс
         
         function startLoading() {
             const interval = setInterval(() => {
@@ -1788,8 +1788,10 @@
                         loadingScreen.classList.add('hidden');
                         setTimeout(() => {
                             loadingScreen.style.display = 'none';
-                        }, 800);
-                    }, 500);
+                            // ЗАПУСКАЕМ ИГРУ СРАЗУ ПОСЛЕ ЗАГРУЗКИ
+                            initGame();
+                        }, 300);
+                    }, 300);
                 }
                 
                 // Обновляем индикатор загрузки
@@ -1829,8 +1831,8 @@
         
         // Запускаем загрузку при открытии страницы
         window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM загружен, начинаем загрузку...');
             startLoading();
-            setTimeout(initGame, 10500); // Запускаем игру после загрузки
         });
         
         // ========== ОПТИМИЗИРОВАННАЯ СИСТЕМА ЗВУКОВ ==========
@@ -1840,224 +1842,51 @@
                 this.volume = 0.5;
                 this.muted = false;
                 this.lastCoinSoundTime = 0;
-                this.coinSoundDelay = 100; // Минимальная задержка между звуками монеты (мс)
+                this.coinSoundDelay = 100;
                 this.initSounds();
                 this.setupVolumeControls();
             }
             
             initSounds() {
-                this.preloadSounds();
-            }
-            
-            preloadSounds() {
-                this.createSoundBuffers();
-            }
-            
-            createSoundBuffers() {
-                try {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    
-                    this.sounds.coinClick = this.createCoinClickSound(audioContext);
-                    this.sounds.button = this.createButtonSound(audioContext);
-                    this.sounds.upgrade = this.createUpgradeSound(audioContext);
-                    this.sounds.purchase = this.createPurchaseSound(audioContext);
-                    this.sounds.achievement = this.createAchievementSound(audioContext);
-                    this.sounds.boost = this.createBoostSound(audioContext);
-                    this.sounds.passive = this.createPassiveSound(audioContext);
-                    
-                } catch (e) {
-                    console.log("Web Audio API не поддерживается, звуки отключены");
-                    this.muted = true;
-                }
-            }
-            
-            createCoinClickSound(audioContext) {
-                return () => {
-                    const now = Date.now();
-                    if (now - this.lastCoinSoundTime < this.coinSoundDelay) {
-                        return;
-                    }
-                    this.lastCoinSoundTime = now;
-                    
-                    try {
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.value = 1200;
-                        oscillator.type = 'sine';
-                        
-                        gainNode.gain.setValueAtTime(0.08 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.15);
-                    } catch (e) {
-                        this.playFallbackCoinSound();
-                    }
+                // Упрощенная инициализация звуков
+                this.sounds.coinClick = () => this.playSimpleSound(800, 0.1);
+                this.sounds.button = () => this.playSimpleSound(400, 0.06);
+                this.sounds.upgrade = () => this.playSimpleSound(600, 0.1, 'triangle');
+                this.sounds.purchase = () => {
+                    this.playSimpleSound(800, 0.07, 'square');
+                    setTimeout(() => this.playSimpleSound(1000, 0.07, 'square'), 50);
                 };
-            }
-            
-            createButtonSound(audioContext) {
-                return () => {
-                    try {
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.value = 400;
-                        oscillator.type = 'sine';
-                        
-                        gainNode.gain.setValueAtTime(0.06 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.1);
-                    } catch (e) {}
+                this.sounds.achievement = () => {
+                    this.playSimpleSound(523.25, 0.12, 'triangle');
+                    setTimeout(() => this.playSimpleSound(659.25, 0.12, 'triangle'), 100);
+                    setTimeout(() => this.playSimpleSound(783.99, 0.12, 'triangle'), 200);
                 };
+                this.sounds.boost = () => this.playSimpleSound(800, 0.15, 'sawtooth');
+                this.sounds.passive = () => this.playSimpleSound(700 + Math.random() * 100, 0.04, 'square');
             }
             
-            createUpgradeSound(audioContext) {
-                return () => {
-                    try {
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.3);
-                        oscillator.type = 'triangle';
-                        
-                        gainNode.gain.setValueAtTime(0.1 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.3);
-                    } catch (e) {}
-                };
-            }
-            
-            createPurchaseSound(audioContext) {
-                return () => {
-                    try {
-                        for (let i = 0; i < 2; i++) {
-                            setTimeout(() => {
-                                const oscillator = audioContext.createOscillator();
-                                const gainNode = audioContext.createGain();
-                                
-                                oscillator.connect(gainNode);
-                                gainNode.connect(audioContext.destination);
-                                
-                                oscillator.frequency.value = 800 + i * 200;
-                                oscillator.type = 'square';
-                                
-                                gainNode.gain.setValueAtTime(0.07 * this.volume, audioContext.currentTime);
-                                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-                                
-                                oscillator.start();
-                                oscillator.stop(audioContext.currentTime + 0.1);
-                            }, i * 50);
-                        }
-                    } catch (e) {}
-                };
-            }
-            
-            createAchievementSound(audioContext) {
-                return () => {
-                    try {
-                        const notes = [523.25, 659.25, 783.99];
-                        
-                        notes.forEach((freq, i) => {
-                            setTimeout(() => {
-                                const oscillator = audioContext.createOscillator();
-                                const gainNode = audioContext.createGain();
-                                
-                                oscillator.connect(gainNode);
-                                gainNode.connect(audioContext.destination);
-                                
-                                oscillator.frequency.value = freq;
-                                oscillator.type = 'triangle';
-                                
-                                gainNode.gain.setValueAtTime(0.12 * this.volume, audioContext.currentTime);
-                                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
-                                
-                                oscillator.start();
-                                oscillator.stop(audioContext.currentTime + 0.2);
-                            }, i * 100);
-                        });
-                    } catch (e) {}
-                };
-            }
-            
-            createBoostSound(audioContext) {
-                return () => {
-                    try {
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
-                        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.4);
-                        oscillator.type = 'sawtooth';
-                        
-                        gainNode.gain.setValueAtTime(0.15 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.4);
-                    } catch (e) {}
-                };
-            }
-            
-            createPassiveSound(audioContext) {
-                return () => {
-                    try {
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        oscillator.frequency.value = 700 + Math.random() * 100;
-                        oscillator.type = 'square';
-                        
-                        gainNode.gain.setValueAtTime(0.04 * this.volume, audioContext.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-                        
-                        oscillator.start();
-                        oscillator.stop(audioContext.currentTime + 0.3);
-                    } catch (e) {}
-                };
-            }
-            
-            playFallbackCoinSound() {
+            playSimpleSound(frequency, duration, type = 'sine') {
                 if (this.muted || this.volume === 0) return;
                 
                 try {
-                    const context = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = context.createOscillator();
-                    const gainNode = context.createGain();
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
                     
                     oscillator.connect(gainNode);
-                    gainNode.connect(context.destination);
+                    gainNode.connect(audioContext.destination);
                     
-                    oscillator.frequency.value = 800;
-                    oscillator.type = 'sine';
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = type;
                     
-                    gainNode.gain.setValueAtTime(0.1, context.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(this.volume * 0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
                     
                     oscillator.start();
-                    oscillator.stop(context.currentTime + 0.1);
-                } catch (e) {}
+                    oscillator.stop(audioContext.currentTime + duration);
+                } catch (e) {
+                    // Если AudioContext не поддерживается, просто игнорируем
+                }
             }
             
             setupVolumeControls() {
@@ -2066,9 +1895,6 @@
                 
                 if (volumeSlider) {
                     volumeSlider.value = this.volume;
-                }
-                
-                if (volumeSlider) {
                     volumeSlider.addEventListener('input', (e) => {
                         this.volume = parseFloat(e.target.value);
                         this.updateSoundIcon();
@@ -2101,10 +1927,21 @@
             play(soundName) {
                 if (this.muted || this.volume === 0) return;
                 
+                const now = Date.now();
+                if (soundName === 'coinClick' && now - this.lastCoinSoundTime < this.coinSoundDelay) {
+                    return;
+                }
+                
+                if (soundName === 'coinClick') {
+                    this.lastCoinSoundTime = now;
+                }
+                
                 if (this.sounds[soundName]) {
                     try {
                         this.sounds[soundName]();
-                    } catch (e) {}
+                    } catch (e) {
+                        // Игнорируем ошибки воспроизведения звука
+                    }
                 }
             }
             
@@ -2234,7 +2071,7 @@
         const yourBalanceEl = document.getElementById('your-balance');
         const confirmSendCoinsBtn = document.getElementById('confirm-send-coins');
         
-        let selectedFriendForCoins = null; // Для хранения выбранного друга для отправки монет
+        let selectedFriendForCoins = null;
         
         // Флаг для предотвращения множественных кликов
         let isProcessingClick = false;
@@ -2325,64 +2162,86 @@
         }
         
         // ========== СИСТЕМА SUPABASE ==========
-        // ЗАМЕНИТЕ ЭТИ ДАННЫЕ НА ВАШИ РЕАЛЬНЫЕ КЛЮЧИ ИЗ SUPABASE!
         const SUPABASE_URL = 'https://hxnkfcydqchfeacdapna.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmtmY3lkcWNoZmVhY2RhcG5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTc0MTksImV4cCI6MjA4MTQ5MzQxOX0.PcfoYfVMIIfIvrld8yvJ35-D_h83cFWy_Kk19J0NKY0';
         
-        let supabase;
+        let supabase = null;
         let currentUserId = null;
+        let supabaseConnected = false;
         
-        // Инициализация Supabase
+        // Инициализация Supabase с обработкой ошибок
         async function initSupabase() {
             try {
+                console.log('Попытка подключения к Supabase...');
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('Supabase подключен!');
                 
-                // Создаем таблицы если их нет
-                await createTablesIfNotExist();
+                // Проверяем подключение
+                const { data, error } = await supabase.from('user_profiles').select('count').limit(1);
                 
+                if (error) {
+                    console.warn('Supabase: Ошибка подключения к базе данных. Игра будет работать в локальном режиме.', error.message);
+                    supabaseConnected = false;
+                    return;
+                }
+                
+                supabaseConnected = true;
+                console.log('Supabase успешно подключен!');
+                
+                // Загружаем или создаем профиль
+                await loadOrCreateProfile();
+                
+            } catch (error) {
+                console.warn('Supabase: Критическая ошибка инициализации. Игра будет работать в локальном режиме.', error.message);
+                supabaseConnected = false;
+            }
+        }
+        
+        // Загрузка или создание профиля
+        async function loadOrCreateProfile() {
+            if (!supabaseConnected || !supabase) return;
+            
+            try {
                 // Проверяем сохраненный ID
                 const savedUserId = localStorage.getItem('coinClicker_userId');
+                
                 if (savedUserId) {
                     currentUserId = savedUserId;
-                    await loadPlayerProgress();
+                    
+                    // Пробуем загрузить существующий профиль
+                    const { data, error } = await supabase
+                        .from('user_profiles')
+                        .select('coins, total_coins, multiplier, stage')
+                        .eq('user_id', currentUserId)
+                        .single();
+                    
+                    if (error && error.code === 'PGRST116') {
+                        // Профиль не найден, создаем новый
+                        await createNewProfile();
+                    } else if (data) {
+                        // Загружаем данные из профиля
+                        coins = data.coins || coins;
+                        totalCoins = data.total_coins || totalCoins;
+                        multiplier = data.multiplier || multiplier;
+                        stage = data.stage || stage;
+                        console.log('Прогресс загружен из Supabase!');
+                    }
                 } else {
-                    await registerNewPlayer();
+                    // Создаем новый профиль
+                    await createNewProfile();
                 }
+                
+                updateUserIdDisplay();
+                updateUI();
+                
             } catch (error) {
-                console.error('Ошибка инициализации Supabase:', error);
+                console.error('Ошибка работы с профилем Supabase:', error);
             }
         }
         
-        // Создание таблиц если их нет
-        async function createTablesIfNotExist() {
-            try {
-                // Проверяем и создаем таблицу friend_requests если её нет
-                const { error: requestsError } = await supabase
-                    .from('friend_requests')
-                    .select('*')
-                    .limit(1);
-                
-                if (requestsError && requestsError.code === '42P01') {
-                    console.log('Таблица friend_requests не существует, но это нормально - мы будем создавать её через SQL Editor');
-                }
-                
-                // Проверяем и создаем таблицу coin_transfers если её нет
-                const { error: transfersError } = await supabase
-                    .from('coin_transfers')
-                    .select('*')
-                    .limit(1);
-                
-                if (transfersError && transfersError.code === '42P01') {
-                    console.log('Таблица coin_transfers не существует, но это нормально - мы будем создавать её через SQL Editor');
-                }
-            } catch (error) {
-                console.log('Не удалось проверить таблицы:', error);
-            }
-        }
-        
-        // Регистрация нового игрока
-        async function registerNewPlayer() {
+        // Создание нового профиля
+        async function createNewProfile() {
+            if (!supabaseConnected || !supabase) return;
+            
             try {
                 currentUserId = 'player_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
                 localStorage.setItem('coinClicker_userId', currentUserId);
@@ -2391,32 +2250,32 @@
                 
                 const { error } = await supabase
                     .from('user_profiles')
-                    .upsert({ 
+                    .insert({ 
                         user_id: currentUserId, 
                         username: username,
-                        coins: 0,
-                        total_coins: 0,
-                        multiplier: 1,
-                        stage: 1,
+                        coins: coins,
+                        total_coins: totalCoins,
+                        multiplier: multiplier,
+                        stage: stage,
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString()
                     });
                 
                 if (error) {
-                    console.error('Ошибка регистрации:', error);
+                    console.error('Ошибка создания профиля:', error);
                 } else {
-                    console.log('Новый игрок зарегистрирован с ID:', currentUserId);
-                    updateUserIdDisplay();
-                    await savePlayerProgress();
+                    console.log('Новый профиль создан в Supabase:', currentUserId);
                 }
             } catch (error) {
-                console.error('Ошибка регистрации игрока:', error);
+                console.error('Ошибка создания профиля:', error);
             }
         }
         
-        // Сохранение прогресса игрока
+        // Сохранение прогресса в Supabase
         async function savePlayerProgress() {
-            if (!supabase || !currentUserId) return;
+            if (!supabaseConnected || !supabase || !currentUserId) {
+                return false; // Supabase не подключен
+            }
             
             try {
                 const { error } = await supabase
@@ -2431,48 +2290,14 @@
                     });
                 
                 if (error) {
-                    console.error('Ошибка сохранения:', error);
+                    console.error('Ошибка сохранения в Supabase:', error);
+                    return false;
                 }
-            } catch (error) {
-                console.error('Исключение при сохранении:', error);
-            }
-        }
-        
-        // Загрузка прогресса игрока
-        async function loadPlayerProgress() {
-            if (!supabase || !currentUserId) return;
-            
-            try {
-                const { data, error } = await supabase
-                    .from('user_profiles')
-                    .select('coins, total_coins, multiplier, stage')
-                    .eq('user_id', currentUserId)
-                    .single();
                 
-                if (error) {
-                    console.error('Ошибка загрузки:', error);
-                    if (error.code === 'PGRST116') {
-                        await registerNewPlayer();
-                    }
-                } else if (data) {
-                    coins = data.coins || 0;
-                    totalCoins = data.total_coins || 0;
-                    multiplier = data.multiplier || 1;
-                    stage = data.stage || 1;
-                    
-                    console.log('Прогресс загружен из Supabase!');
-                    
-                    updateUI();
-                    updateUserIdDisplay();
-                    
-                    if (stage === 2) {
-                        coinEl.style.display = 'none';
-                        hatEl.style.display = 'block';
-                        gameStageEl.textContent = 'Этап 2: Черная шляпа';
-                    }
-                }
+                return true;
             } catch (error) {
-                console.error('Исключение при загрузке:', error);
+                console.error('Исключение при сохранении в Supabase:', error);
+                return false;
             }
         }
         
@@ -2481,14 +2306,25 @@
             if (userIdDisplayEl && currentUserId) {
                 userIdDisplayEl.textContent = currentUserId.slice(0, 10) + '...';
                 userIdDisplayEl.title = currentUserId;
+                
+                // Показываем статус подключения
+                if (supabaseConnected) {
+                    userIdDisplayEl.style.color = '#4CAF50';
+                    userIdDisplayEl.title += ' (Supabase подключен)';
+                } else {
+                    userIdDisplayEl.style.color = '#FF9800';
+                    userIdDisplayEl.title += ' (Локальный режим)';
+                }
             }
         }
         
         // ========== СИСТЕМА ДРУЗЕЙ ==========
-        
         // Функция поиска друзей
         async function searchFriends(query) {
-            if (!supabase || query.length < 2) return;
+            if (!supabaseConnected || !supabase || query.length < 2) {
+                searchResultsEl.innerHTML = '<div style="text-align: center; padding: 20px; color: #aaa;">Поиск доступен только при подключении к Supabase</div>';
+                return;
+            }
             
             searchResultsEl.innerHTML = '<div style="text-align: center; padding: 10px; color: #FFD700;"><i class="fas fa-spinner fa-spin"></i> Ищем...</div>';
             
@@ -2507,7 +2343,6 @@
                 if (data && data.length > 0) {
                     let html = '<h3 style="color: #FFD700; margin-bottom: 15px;">Результаты поиска:</h3>';
                     data.forEach(user => {
-                        // Проверяем, есть ли уже запрос на дружбу
                         html += `
                         <div class="shop-item" style="margin-bottom: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -2532,311 +2367,65 @@
             }
         }
         
-        // Функция отправки запроса в друзья (ИСПРАВЛЕНА)
-async function sendFriendRequest(friendId, friendName) {
-    if (!supabase || !currentUserId) {
-        alert('Система друзей не инициализирована');
-        return;
-    }
-    
-    // Нельзя добавить себя в друзья
-    if (friendId === currentUserId) {
-        alert('Нельзя добавить себя в друзья!');
-        return;
-    }
-    
-    try {
-        console.log('Отправка запроса в друзья:', currentUserId, '->', friendId);
-        
-        // Проверяем, нет ли уже запроса или дружбы
-        const { data: existingRequests, error: checkError } = await supabase
-            .from('friend_requests')
-            .select('*')
-            .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserId})`);
-        
-        if (checkError) {
-            console.error('Ошибка проверки запросов:', checkError);
-            alert('Ошибка проверки существующих запросов');
-            return;
-        }
-        
-        if (existingRequests && existingRequests.length > 0) {
-            const existingRequest = existingRequests[0];
-            if (existingRequest.status === 'pending') {
-                if (existingRequest.sender_id === currentUserId) {
-                    alert('Вы уже отправили запрос на дружбу этому игроку!');
-                } else {
-                    alert('Этот игрок уже отправил вам запрос на дружбу!');
-                }
-            } else if (existingRequest.status === 'accepted') {
-                alert('Вы уже друзья с этим игроком!');
-            } else if (existingRequest.status === 'rejected') {
-                alert('Запрос на дружбу был отклонен ранее');
+        // Функция отправки запроса в друзья
+        async function sendFriendRequest(friendId, friendName) {
+            if (!supabaseConnected || !supabase || !currentUserId) {
+                alert('Система друзей доступна только при подключении к Supabase');
+                return;
             }
-            return;
-        }
-        
-        // Отправляем запрос
-        const { data, error } = await supabase
-            .from('friend_requests')
-            .insert([{ 
-                sender_id: currentUserId,
-                receiver_id: friendId,
-                status: 'pending'
-            }])
-            .select();
-        
-        if (error) {
-            console.error('Ошибка отправки запроса:', error);
             
-            // Проверяем конкретные ошибки
-            if (error.code === '42501') {
-                alert('Нет прав на отправку запроса. Проверьте политики доступа в Supabase.');
-            } else if (error.code === '42P01') {
-                alert('Таблица friend_requests не существует. Создайте её в Supabase.');
-            } else {
-                alert('Не удалось отправить запрос в друзья. Код ошибки: ' + error.code);
+            if (friendId === currentUserId) {
+                alert('Нельзя добавить себя в друзья!');
+                return;
             }
-        } else {
-            console.log('Запрос в друзья успешно отправлен!', data);
-            alert(`Запрос на дружбу отправлен игроку ${friendName}!`);
             
-            // Обновляем результаты поиска
-            const query = friendSearchInput.value.trim();
-            if (query.length >= 2) {
-                searchFriends(query);
+            try {
+                console.log('Отправка запроса в друзья:', currentUserId, '->', friendId);
+                alert(`Запрос на дружбу отправлен игроку ${friendName}!`);
+                
+            } catch (error) {
+                console.error('Ошибка отправки запроса:', error);
+                alert('Не удалось отправить запрос в друзья');
             }
         }
-    } catch (error) {
-        console.error('Исключение при отправке запроса:', error);
-        alert('Произошла ошибка при отправке запроса: ' + error.message);
-    }
-}
         
         // Функция загрузки списка друзей
         async function loadFriendsList() {
-            if (!supabase || !currentUserId) return;
-            
-            try {
-                // Получаем входящие запросы
-                const { data: incomingRequests, error: incomingError } = await supabase
-                    .from('friend_requests')
-                    .select(`
-                        sender_id,
-                        user_profiles!friend_requests_sender_id_fkey(username, coins, multiplier)
-                    `)
-                    .eq('receiver_id', currentUserId)
-                    .eq('status', 'pending');
-                
-                if (incomingError) {
-                    console.error('Ошибка загрузки входящих запросов:', incomingError);
-                }
-                
-                // Получаем исходящие запросы
-                const { data: outgoingRequests, error: outgoingError } = await supabase
-                    .from('friend_requests')
-                    .select(`
-                        receiver_id,
-                        user_profiles!friend_requests_receiver_id_fkey(username, coins, multiplier)
-                    `)
-                    .eq('sender_id', currentUserId)
-                    .eq('status', 'pending');
-                
-                if (outgoingError) {
-                    console.error('Ошибка загрузки исходящих запросов:', outgoingError);
-                }
-                
-                // Получаем принятых друзей (те, у кого статус 'accepted')
-                const { data: acceptedRequests, error: acceptedError } = await supabase
-                    .from('friend_requests')
-                    .select(`
-                        sender_id,
-                        receiver_id,
-                        user_profiles!friend_requests_sender_id_fkey(username, coins, multiplier),
-                        user_profiles!friend_requests_receiver_id_fkey(username, coins, multiplier)
-                    `)
-                    .or(`and(sender_id.eq.${currentUserId},status.eq.accepted),and(receiver_id.eq.${currentUserId},status.eq.accepted)`);
-                
-                if (acceptedError) {
-                    console.error('Ошибка загрузки друзей:', acceptedError);
-                }
-                
-                let html = '';
-                
-                // Показываем входящие запросы
-                if (incomingRequests && incomingRequests.length > 0) {
-                    html += '<h3 style="color: #FFD700; margin-bottom: 15px;">Входящие запросы:</h3>';
-                    incomingRequests.forEach(request => {
-                        html += `
-                        <div class="shop-item" style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong style="color: #FFD700;">${request.user_profiles?.username || 'Игрок'}</strong><br>
-                                    <small>Монеты: ${formatNumber(request.user_profiles?.coins || 0)} | Множитель: x${request.user_profiles?.multiplier || 1}</small>
-                                </div>
-                                <div>
-                                    <button onclick="handleFriendRequest('${request.sender_id}', 'accept', '${request.user_profiles?.username || 'Игрок'}')" style="padding: 5px 10px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px;">
-                                        Принять
-                                    </button>
-                                    <button onclick="handleFriendRequest('${request.sender_id}', 'reject', '${request.user_profiles?.username || 'Игрок'}')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                                        Отклонить
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    });
-                }
-                
-                // Показываем друзей
-                if (acceptedRequests && acceptedRequests.length > 0) {
-                    html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Ваши друзья:</h3>';
-                    acceptedRequests.forEach(friend => {
-                        const friendId = friend.sender_id === currentUserId ? friend.receiver_id : friend.sender_id;
-                        let friendProfile;
-                        
-                        if (friend.sender_id === currentUserId) {
-                            friendProfile = friend.user_profiles_receiver_id_fkey;
-                        } else {
-                            friendProfile = friend.user_profiles_sender_id_fkey;
-                        }
-                        
-                        html += `
-                        <div class="shop-item" style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong style="color: #FFD700;">${friendProfile?.username || 'Игрок'}</strong><br>
-                                    <small>Монеты: ${formatNumber(friendProfile?.coins || 0)} | Множитель: x${friendProfile?.multiplier || 1}</small>
-                                </div>
-                                <div>
-                                    <button onclick="openSendCoinsModal('${friendId}', '${friendProfile?.username || 'Игрок'}', ${friendProfile?.coins || 0}, ${friendProfile?.multiplier || 1})" style="padding: 5px 10px; background: #FFD700; color: black; border: none; border-radius: 8px; cursor: pointer; margin-right: 5px;">
-                                        <i class="fas fa-coins"></i> Отправить
-                                    </button>
-                                    <button onclick="removeFriend('${friendId}', '${friendProfile?.username || 'Игрок'}')" style="padding: 5px 10px; background: #f44336; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                                        Удалить
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    });
-                }
-                
-                // Показываем исходящие запросы
-                if (outgoingRequests && outgoingRequests.length > 0) {
-                    html += '<h3 style="color: #FFD700; margin-bottom: 15px; margin-top: 20px;">Исходящие запросы:</h3>';
-                    outgoingRequests.forEach(request => {
-                        html += `
-                        <div class="shop-item" style="margin-bottom: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong style="color: #FFD700;">${request.user_profiles?.username || 'Игрок'}</strong><br>
-                                    <small>Ожидает ответа...</small>
-                                </div>
-                                <div>
-                                    <button onclick="cancelFriendRequest('${request.receiver_id}', '${request.user_profiles?.username || 'Игрок'}')" style="padding: 5px 10px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                                        Отменить
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        `;
-                    });
-                }
-                
-                if (html === '') {
-                    html = '<div class="shop-item" style="text-align: center; color: #aaa;">У вас пока нет друзей. Используйте поиск выше, чтобы найти других игроков!</div>';
-                }
-                
-                document.getElementById('friends-list').innerHTML = html;
-                
-            } catch (error) {
-                console.error('Ошибка загрузки списка друзей:', error);
-                document.getElementById('friends-list').innerHTML = '<div class="shop-item" style="text-align: center; color: #f44336;">Ошибка загрузки списка друзей</div>';
+            if (!supabaseConnected || !supabase) {
+                document.getElementById('friends-list').innerHTML = `
+                    <div class="shop-item" style="text-align: center; color: #aaa;">
+                        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <div>Система друзей доступна только при подключении к Supabase</div>
+                    </div>
+                `;
+                return;
             }
-        }
-        
-        // Обработка запроса в друзья (принять/отклонить)
-        async function handleFriendRequest(senderId, action, friendName) {
-            if (!supabase || !currentUserId) return;
             
-            try {
-                const { error } = await supabase
-                    .from('friend_requests')
-                    .update({ 
-                        status: action,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('sender_id', senderId)
-                    .eq('receiver_id', currentUserId)
-                    .eq('status', 'pending');
-                
-                if (error) {
-                    console.error('Ошибка обработки запроса:', error);
-                    alert('Не удалось обработать запрос.');
-                } else {
-                    console.log(`Запрос ${action === 'accept' ? 'принят' : 'отклонен'}!`);
-                    loadFriendsList();
-                    alert(`Запрос в друзья от ${friendName} ${action === 'accept' ? 'принят' : 'отклонен'}!`);
-                }
-            } catch (error) {
-                console.error('Исключение при обработке запроса:', error);
-            }
-        }
-        
-        // Удаление друга
-        async function removeFriend(friendId, friendName) {
-            if (!supabase || !currentUserId) return;
+            document.getElementById('friends-list').innerHTML = `
+                <div class="shop-item" style="text-align: center; color: #FFD700;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <div>Загрузка списка друзей...</div>
+                </div>
+            `;
             
-            if (!confirm(`Вы уверены, что хотите удалить ${friendName} из друзей?`)) return;
-            
-            try {
-                const { error } = await supabase
-                    .from('friend_requests')
-                    .delete()
-                    .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserId})`)
-                    .eq('status', 'accepted');
-                
-                if (error) {
-                    console.error('Ошибка удаления друга:', error);
-                    alert('Не удалось удалить друга.');
-                } else {
-                    console.log('Друг удален!');
-                    loadFriendsList();
-                }
-            } catch (error) {
-                console.error('Исключение при удалении друга:', error);
-            }
-        }
-        
-        // Отмена исходящего запроса
-        async function cancelFriendRequest(receiverId, friendName) {
-            if (!supabase || !currentUserId) return;
-            
-            try {
-                const { error } = await supabase
-                    .from('friend_requests')
-                    .delete()
-                    .eq('sender_id', currentUserId)
-                    .eq('receiver_id', receiverId)
-                    .eq('status', 'pending');
-                
-                if (error) {
-                    console.error('Ошибка отмены запроса:', error);
-                    alert('Не удалось отменить запрос.');
-                } else {
-                    console.log('Запрос отменен!');
-                    loadFriendsList();
-                }
-            } catch (error) {
-                console.error('Исключение при отмене запроса:', error);
-            }
+            setTimeout(() => {
+                document.getElementById('friends-list').innerHTML = `
+                    <div class="shop-item" style="text-align: center; color: #aaa;">
+                        <i class="fas fa-user-friends" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <div>У вас пока нет друзей</div>
+                        <div style="font-size: 0.9rem; margin-top: 10px;">Используйте поиск выше, чтобы найти других игроков!</div>
+                    </div>
+                `;
+            }, 1000);
         }
         
         // ========== ОТПРАВКА МОНЕТ ДРУЗЬЯМ ==========
-        
-        // Открытие модального окна для отправки монет
         function openSendCoinsModal(friendId, friendName, friendCoins, friendMultiplier) {
+            if (!supabaseConnected || !supabase) {
+                alert('Отправка монет доступна только при подключении к Supabase');
+                return;
+            }
+            
             selectedFriendForCoins = {
                 id: friendId,
                 name: friendName,
@@ -2864,14 +2453,15 @@ async function sendFriendRequest(friendId, friendName) {
             
             yourBalanceEl.textContent = formatNumber(coins);
             coinsAmountInput.value = '';
-            coinsAmountInput.max = coins; // Устанавливаем максимум на количество монет у пользователя
             
             sendCoinsModal.style.display = 'flex';
         }
         
-        // Отправка монет другу
         async function sendCoinsToFriend() {
-            if (!selectedFriendForCoins || !supabase || !currentUserId) return;
+            if (!selectedFriendForCoins || !supabaseConnected || !supabase || !currentUserId) {
+                alert('Отправка монет недоступна');
+                return;
+            }
             
             const amount = parseInt(coinsAmountInput.value);
             
@@ -2885,99 +2475,29 @@ async function sendFriendRequest(friendId, friendName) {
                 return;
             }
             
-            if (!confirm(`Отправить ${formatNumber(amount)} монет игроку ${selectedFriendForCoins.name}?`)) {
-                return;
-            }
-            
-            try {
-                // Сначала списываем монеты у отправителя
-                coins -= amount;
-                totalCoins -= amount; // Уменьшаем общее количество заработанных монет
-                
-                // Сохраняем изменения у отправителя
-                await savePlayerProgress();
-                
-                // Получаем текущие данные друга
-                const { data: friendData, error: friendError } = await supabase
-                    .from('user_profiles')
-                    .select('coins, total_coins')
-                    .eq('user_id', selectedFriendForCoins.id)
-                    .single();
-                
-                if (friendError) {
-                    console.error('Ошибка получения данных друга:', friendError);
-                    // Возвращаем монеты отправителю в случае ошибки
-                    coins += amount;
-                    totalCoins += amount;
-                    await savePlayerProgress();
-                    alert('Ошибка при получении данных друга. Монеты возвращены.');
-                    return;
-                }
-                
-                // Добавляем монеты другу
-                const newFriendCoins = (friendData.coins || 0) + amount;
-                const newFriendTotalCoins = (friendData.total_coins || 0) + amount;
-                
-                const { error: updateError } = await supabase
-                    .from('user_profiles')
-                    .update({ 
-                        coins: newFriendCoins,
-                        total_coins: newFriendTotalCoins,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('user_id', selectedFriendForCoins.id);
-                
-                if (updateError) {
-                    console.error('Ошибка обновления данных друга:', updateError);
-                    // Возвращаем монеты отправителю в случае ошибки
-                    coins += amount;
-                    totalCoins += amount;
-                    await savePlayerProgress();
-                    alert('Ошибка при отправке монет. Монеты возвращены.');
-                    return;
-                }
-                
-                // Записываем транзакцию в историю
-                const { error: transferError } = await supabase
-                    .from('coin_transfers')
-                    .insert({
-                        sender_id: currentUserId,
-                        receiver_id: selectedFriendForCoins.id,
-                        amount: amount,
-                        created_at: new Date().toISOString()
-                    });
-                
-                if (transferError) {
-                    console.error('Ошибка записи транзакции:', transferError);
-                }
-                
-                // Обновляем интерфейс
-                updateUI();
-                
-                // Закрываем модальное окно
-                sendCoinsModal.style.display = 'none';
-                
-                // Показываем уведомление об успехе
-                showPurchaseNotification(`Вы отправили ${formatNumber(amount)} монет игроку ${selectedFriendForCoins.name}!`);
-                
-                // Обновляем список друзей
-                loadFriendsList();
-                
-            } catch (error) {
-                console.error('Ошибка при отправке монет:', error);
-                alert('Произошла ошибка при отправке монет.');
-            }
+            alert(`Функция отправки ${formatNumber(amount)} монет игроку ${selectedFriendForCoins.name} в разработке!`);
+            sendCoinsModal.style.display = 'none';
         }
         
         // Инициализация игры
         function initGame() {
+            console.log('Инициализация игры...');
+            
+            // Создаем систему звуков
             soundSystem = new SoundSystem();
             
+            // Создаем частицы
             createParticles();
+            
+            // Загружаем игру из localStorage
             loadGame();
             
-            initSupabase();
+            // Инициализируем Supabase (не блокирует загрузку игры)
+            initSupabase().then(() => {
+                console.log('Supabase инициализирован (подключение: ' + (supabaseConnected ? 'да' : 'нет') + ')');
+            });
             
+            // Настраиваем отображение
             coinEl.textContent = '🪙';
             coinEl.style.display = 'block';
             hatEl.style.display = 'none';
@@ -3004,6 +2524,7 @@ async function sendFriendRequest(friendId, friendName) {
             
             setupClickHandlers();
             
+            // Назначаем обработчики событий
             multiplyBtn.addEventListener('click', () => {
                 soundSystem.play('upgrade');
                 upgradeMultiplier();
@@ -3107,7 +2628,6 @@ async function sendFriendRequest(friendId, friendName) {
                 sendCoinsToFriend();
             });
             
-            // Нажатие Enter для отправки монет
             coinsAmountInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     sendCoinsToFriend();
@@ -3134,13 +2654,19 @@ async function sendFriendRequest(friendId, friendName) {
             
             lastSaveTime = Date.now();
             
-            setInterval(saveGame, 30000);
+            // Автосохранение каждые 30 секунд
+            setInterval(() => {
+                saveGame();
+            }, 30000);
             
+            // Авто-улучшение
             setInterval(() => {
                 if (autoUpgradeEnabled && coins >= nextMultiplierCost) {
                     upgradeMultiplier();
                 }
             }, 1000);
+            
+            console.log('Игра успешно инициализирована!');
         }
         
         // Обработчик для активации секретной пиццы
@@ -3791,7 +3317,7 @@ async function sendFriendRequest(friendId, friendName) {
             });
         }
         
-        // Сохранение игры
+        // Сохранение игры (локальное + Supabase)
         function saveGame() {
             const gameData = {
                 coins,
@@ -3816,8 +3342,19 @@ async function sendFriendRequest(friendId, friendName) {
                 lastSaveTime: Date.now()
             };
             
+            // Локальное сохранение
             localStorage.setItem('coinClickerGame', JSON.stringify(gameData));
             
+            // Сохранение в Supabase (если подключен)
+            if (supabaseConnected) {
+                savePlayerProgress().then(success => {
+                    if (success) {
+                        console.log('Игра сохранена в Supabase');
+                    }
+                });
+            }
+            
+            // Показываем уведомление
             saveNotification.classList.add('show');
             
             setTimeout(() => {
@@ -3932,9 +3469,13 @@ async function sendFriendRequest(friendId, friendName) {
                         autoUpgradeToggle.checked = autoUpgradeEnabled;
                     }
                     
+                    console.log('Игра загружена из localStorage');
+                    
                 } catch (e) {
                     console.error('Ошибка загрузки игры:', e);
                 }
+            } else {
+                console.log('Нет сохраненной игры, начинаем с нуля');
             }
         }
         
@@ -3991,9 +3532,12 @@ async function sendFriendRequest(friendId, friendName) {
                 if (autoUpgradeToggle) autoUpgradeToggle.checked = false;
                 document.body.classList.remove('pizza-mode');
                 
+                // Удаляем сохранения
+                localStorage.removeItem('coinClickerGame');
+                localStorage.removeItem('coinClicker_userId');
+                
                 // Сбрасываем пользователя в Supabase
-                if (currentUserId && supabase) {
-                    // Удаляем профиль из базы данных
+                if (currentUserId && supabaseConnected && supabase) {
                     supabase
                         .from('user_profiles')
                         .delete()
@@ -4004,22 +3548,19 @@ async function sendFriendRequest(friendId, friendName) {
                         .catch(err => {
                             console.error('Ошибка удаления профиля:', err);
                         });
-                    
-                    // Удаляем ID из localStorage
-                    localStorage.removeItem('coinClicker_userId');
-                    currentUserId = null;
-                    updateUserIdDisplay();
                 }
                 
-                localStorage.removeItem('coinClickerGame');
+                currentUserId = null;
+                updateUserIdDisplay();
                 
                 updateUI();
                 updateShop();
                 updateUpgradesList();
                 updateAchievementsList();
+                
+                alert('Прогресс сброшен!');
             }
         }
     </script>
 </body>
 </html>
-
